@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 interface Backup {
   id: string
@@ -135,6 +136,24 @@ export default function SettingsPage() {
             {success}
           </div>
         )}
+
+        {/* Provider Configuration */}
+        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Provider Configuration</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Configure AI providers (Claude, OpenAI, Pi) to enable agents to execute tasks
+              </p>
+            </div>
+            <Link
+              href="/settings/providers"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              Configure Providers →
+            </Link>
+          </div>
+        </div>
 
         {/* Backup & Restore */}
         <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">

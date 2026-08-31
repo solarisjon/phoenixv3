@@ -4,12 +4,14 @@ export const schema = `
 -- Providers: External AI tools (Claude Code, Cursor, Pi, etc.)
 CREATE TABLE IF NOT EXISTS providers (
   id TEXT PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('claude-code', 'cursor', 'pi', 'openai-compat', 'llama-cpp')),
   description TEXT,
-  config_schema TEXT NOT NULL DEFAULT '{}',
+  config TEXT NOT NULL DEFAULT '{}',
   available_models TEXT NOT NULL DEFAULT '[]',
-  created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  is_configured BOOLEAN NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+  updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 );
 
 -- Projects: Outcome/deliverable
