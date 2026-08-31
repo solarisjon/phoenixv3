@@ -47,13 +47,6 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!command) {
-      return NextResponse.json(
-        { error: 'command field is required' },
-        { status: 400 },
-      )
-    }
-
     // Verify project exists
     const project = await database.get('SELECT * FROM projects WHERE id = ?', [projectId])
     if (!project) {

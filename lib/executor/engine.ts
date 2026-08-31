@@ -32,7 +32,8 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
     }
 
     if (!run.command) {
-      throw new Error(`Task ${run.task_id} has no command configured`)
+      // Shouldn't reach here - executor filters for command-based tasks only
+      throw new Error(`Run ${runId}: No command configured`)
     }
 
     // Update run status to running
@@ -151,13 +152,16 @@ export async function startTaskExecutor(pollIntervalMs: number = 2000): Promise<
   if (isExecuting) return
 
   isExecuting = true
-  console.log('Task executor started')
+  console.log('Task executor started (handling only command-based tasks)')
 
   const executePending = async () => {
     try {
-      // Find pending runs
+      // Find pending runs with commands (agent-based tasks without commands wait for agent pickup)
       const pendingRuns = await database.all(
-        'SELECT id FROM runs WHERE status = ? ORDER BY created_at ASC LIMIT 1',
+        `SELECT r.id FROM runs r
+         JOIN tasks t ON r.task_id = t.id
+         WHERE r.status = ? AND t.command IS NOT NULL
+         ORDER BY r.created_at ASC LIMIT 1`,
         ['pending'],
       )
 

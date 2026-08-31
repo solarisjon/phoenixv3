@@ -53,11 +53,6 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
       return
     }
 
-    if (!formData.command.trim()) {
-      setError('Command is required')
-      return
-    }
-
     try {
       await onSubmit({ ...formData, projectId })
       setFormData({
@@ -131,7 +126,7 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Command
+          Command (Optional)
         </label>
         <input
           type="text"
@@ -144,7 +139,7 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
           disabled={isLoading}
         />
         <p className="mt-1 text-xs text-gray-600">
-          Shell command to execute
+          Optional: shell command to execute. If omitted, agent reads task description
         </p>
       </div>
 
