@@ -30,6 +30,7 @@ interface Run {
   status: string
   created_at: number
   total_cost: number
+  logs?: string
 }
 
 export default function ProjectDetailPage() {
@@ -68,6 +69,16 @@ export default function ProjectDetailPage() {
         const runsRes = await fetch(`/api/runs?taskId=${task.id}`)
         if (runsRes.ok) {
           const taskRuns = await runsRes.json()
+
+          // Fetch output for each run
+          for (const run of taskRuns) {
+            const outputRes = await fetch(`/api/runs/${run.id}/output`)
+            if (outputRes.ok) {
+              const outputData = await outputRes.json()
+              run.logs = outputData.logs
+            }
+          }
+
           allRuns.push(...taskRuns)
         }
       }
@@ -299,13 +310,13 @@ export default function ProjectDetailPage() {
               {runs.slice(0, 10).map((run) => (
                 <div
                   key={run.id}
-                  className={`rounded-lg border p-3 ${
+                  className={`rounded-lg border p-4 ${
                     run.status === 'running'
                       ? 'border-blue-300 bg-blue-50'
                       : 'border-gray-200 bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{getStatusIcon(run.status)}</span>
@@ -328,6 +339,14 @@ export default function ProjectDetailPage() {
                       </p>
                     </div>
                   </div>
+
+                  {run.logs && (
+                    <div className="mt-3 bg-black text-green-400 rounded p-2 font-mono text-xs overflow-x-auto max-h-32 overflow-y-auto">
+                      <pre className="whitespace-pre-wrap break-words">
+                        {run.logs.split('\n').slice(-10).join('\n')}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

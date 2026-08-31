@@ -45,10 +45,21 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
 
     console.log(`Starting execution of run ${runId}: ${run.task_name}`)
 
-    // Create run log directory
+    // Ensure project working directory exists
+    if (!fs.existsSync(run.base_directory)) {
+      fs.mkdirSync(run.base_directory, { recursive: true })
+      console.log(`Created working directory: ${run.base_directory}`)
+    }
+
+    // Create logs and artifacts subdirectories
     const logsDir = path.join(run.base_directory, 'logs')
+    const artifactsDir = path.join(run.base_directory, 'artifacts')
+
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true })
+    }
+    if (!fs.existsSync(artifactsDir)) {
+      fs.mkdirSync(artifactsDir, { recursive: true })
     }
 
     // Execute command
@@ -62,12 +73,53 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
 
     const status = exitCode === 0 ? 'completed' : 'failed'
 
-    // Save execution logs
+    // Save execution logs with full details
     const logFile = path.join(logsDir, `${runId}.log`)
-    fs.writeFileSync(
-      logFile,
-      `Task: ${run.task_name}\nDescription: ${run.description || 'N/A'}\nCommand: ${run.command}\n\n=== STDOUT ===\n${stdout}\n\n=== STDERR ===\n${stderr}\n\nExit Code: ${exitCode}\nDuration: ${duration}ms`,
-    )
+    const logContent = `Task: ${run.task_name}
+Description: ${run.description || 'N/A'}
+Command: ${run.command}
+Working Directory: ${run.base_directory}
+
+=== STDOUT ===
+${stdout}
+
+=== STDERR ===
+${stderr}
+
+Exit Code: ${exitCode}
+Duration: ${duration}ms
+Timestamp: ${new Date().toISOString()}`
+
+    fs.writeFileSync(logFile, logContent)
+
+    // Scan for created artifacts (files in working directory, excluding logs/artifacts dirs)
+    const artifacts: Array<{ name: string; path: string; size: number }> = []
+    try {
+      const files = fs.readdirSync(run.base_directory)
+      for (const file of files) {
+        if (file !== 'logs' && file !== 'artifacts' && file !== '.recovery' && file !== '.config') {
+          const filePath = path.join(run.base_directory, file)
+          const stat = fs.statSync(filePath)
+          if (stat.isFile()) {
+            artifacts.push({
+              name: file,
+              path: filePath,
+              size: stat.size,
+            })
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to scan for artifacts:', e)
+    }
+
+    // Log discovered artifacts
+    if (artifacts.length > 0) {
+      console.log(`Found ${artifacts.length} artifacts:`)
+      for (const artifact of artifacts) {
+        console.log(`  - ${artifact.name} (${artifact.size} bytes)`)
+      }
+    }
 
     // Update run status
     await database.run(
