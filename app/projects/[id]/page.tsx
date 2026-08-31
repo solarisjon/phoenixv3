@@ -42,9 +42,7 @@ export default function ProjectDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
-
-  // Poll for run updates every 2 seconds
-  const [autoRefresh, setAutoRefresh] = useState(true)
+  const [autoRefresh] = useState(true) // Poll for run updates every 2 seconds
 
   useEffect(() => {
     fetchProjectData()
