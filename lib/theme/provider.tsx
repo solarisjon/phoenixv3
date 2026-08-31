@@ -17,7 +17,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>('system')
   const [theme, setTheme] = useState<ThemeName>('default-light')
-  const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   // Load theme from localStorage
@@ -40,8 +39,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       dark = window.matchMedia('(prefers-color-scheme: dark)').matches
     }
 
-    setIsDark(dark)
-
     // Apply theme to DOM
     const root = document.documentElement
     root.classList.toggle('dark', dark)
@@ -57,7 +54,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = () => {
-      setIsDark(mediaQuery.matches)
       const root = document.documentElement
       root.classList.toggle('dark', mediaQuery.matches)
     }

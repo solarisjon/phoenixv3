@@ -69,7 +69,7 @@ export async function processWebhook(
 
     // Handle artifacts if provided
     if (payload.artifacts && payload.artifacts.length > 0) {
-      for (const artifact of payload.artifacts) {
+      for (const _artifact of payload.artifacts) {
         // Store artifact metadata (actual files stored in working directory)
         // This is just for indexing/tracking
       }

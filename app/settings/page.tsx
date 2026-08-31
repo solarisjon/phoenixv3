@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
       if (!res.ok) throw new Error('Failed to create backup')
 
-      const data = await res.json()
+      await res.json()
       setSuccess('Backup created successfully')
       loadBackups()
     } catch (err) {

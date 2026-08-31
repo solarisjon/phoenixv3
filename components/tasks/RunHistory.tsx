@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface Run {
   id: string
@@ -20,11 +20,7 @@ export default function RunHistory({ taskId }: RunHistoryProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchRuns()
-  }, [taskId])
-
-  const fetchRuns = async () => {
+  const fetchRuns = useCallback(async () => {
     try {
       setIsLoading(true)
       const res = await fetch(`/api/runs?taskId=${taskId}`)
@@ -36,7 +32,11 @@ export default function RunHistory({ taskId }: RunHistoryProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [taskId])
+
+  useEffect(() => {
+    fetchRuns()
+  }, [fetchRuns])
 
   const getStatusColor = (status: string) => {
     switch (status) {

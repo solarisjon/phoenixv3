@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
-import { scheduleTask, parseCronExpression, triggerTaskRun } from '@/lib/scheduler/engine'
+import { scheduleTask, parseCronExpression } from '@/lib/scheduler/engine'
 
 initializeDb()
 

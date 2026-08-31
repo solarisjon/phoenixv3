@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
-import { verifyApiKey } from '@/lib/auth/keys'
 import { processWebhook } from '@/lib/webhooks/processor'
 import { extractApiKeyFromHeader } from '@/lib/auth/keys'
 
@@ -10,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     // Extract and verify API key
     const authHeader = req.headers.get('authorization')
-    const apiKey = extractApiKeyFromHeader(authHeader)
+    const apiKey = extractApiKeyFromHeader(authHeader ?? undefined)
 
     if (!apiKey) {
       return NextResponse.json(

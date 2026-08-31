@@ -11,7 +11,6 @@ interface AgentCardProps {
 }
 
 export default function AgentCard({
-  id,
   name,
   description,
   provider_name,

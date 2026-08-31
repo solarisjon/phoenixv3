@@ -4,7 +4,7 @@ import { generateApiKey } from '@/lib/auth/keys'
 
 initializeDb()
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const agents = await database.all(
       `SELECT a.*, p.name as provider_name, p.type as provider_type

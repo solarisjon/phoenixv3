@@ -104,7 +104,7 @@ export function closeDb(): void {
 export const database = {
   run: (sql: string, params: any[] = []): Promise<any> => {
     return new Promise((resolve, reject) => {
-      getDb().run(sql, params, function (err: any) {
+      getDb().run(sql, params, function (this: any, err: any) {
         if (err) reject(err)
         else resolve({ lastID: this.lastID, changes: this.changes })
       })

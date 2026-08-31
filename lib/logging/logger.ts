@@ -1,5 +1,4 @@
 import path from 'path'
-import os from 'os'
 import fs from 'fs'
 
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'

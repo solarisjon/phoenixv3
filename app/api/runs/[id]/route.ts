@@ -5,7 +5,7 @@ import { createRetryRun } from '@/lib/retry/policy'
 
 initializeDb()
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id: runId } = params
 

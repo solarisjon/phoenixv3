@@ -9,24 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "framer-motion": "10.16.16",
     "next": "14.2.3",
+    "node-cron": "3.0.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "5.3.3",
     "sqlite": "5.1.1",
     "sqlite3": "5.1.6",
-    "node-cron": "3.0.3",
-    "framer-motion": "10.16.16"
+    "typescript": "5.3.3"
   },
   "devDependencies": {
-    "@types/sqlite3": "3.1.11",
     "@types/node": "20.10.6",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "18.2.45",
     "@types/react-dom": "18.2.18",
+    "@types/sqlite3": "3.1.11",
     "autoprefixer": "10.4.16",
-    "postcss": "8.4.32",
-    "tailwindcss": "3.4.1",
     "eslint": "8.55.0",
-    "eslint-config-next": "15.0.0"
+    "eslint-config-next": "15.0.0",
+    "postcss": "8.4.32",
+    "tailwindcss": "3.4.1"
   }
 }

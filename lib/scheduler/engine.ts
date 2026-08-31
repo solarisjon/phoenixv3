@@ -118,7 +118,7 @@ export async function initializeScheduler(): Promise<void> {
 
 // Shutdown scheduler - stop all jobs
 export function shutdownScheduler(): void {
-  for (const [taskId, job] of scheduledJobs.entries()) {
+  for (const [, job] of scheduledJobs.entries()) {
     job.task.stop()
   }
   scheduledJobs.clear()

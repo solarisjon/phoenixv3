@@ -48,7 +48,7 @@ export default function CreateAgentPage() {
           <div className="rounded-lg border border-green-200 bg-green-50 p-8 text-center">
             <h2 className="text-2xl font-bold text-green-900">Agent Created!</h2>
             <p className="mt-2 text-green-700">
-              Save your API key below. You won't be able to view it again.
+              Save your API key below. You won&apos;t be able to view it again.
             </p>
 
             <div className="mt-6 rounded-lg bg-white p-4">

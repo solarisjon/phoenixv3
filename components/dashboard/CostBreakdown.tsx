@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface CostData {
   [key: string]: number
@@ -16,11 +16,7 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    fetchCosts()
-  }, [breakdown])
-
-  const fetchCosts = async () => {
+  const fetchCosts = useCallback(async () => {
     try {
       setIsLoading(true)
       const res = await fetch(`/api/costs?breakdown=${breakdown}`)
@@ -33,7 +29,11 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [breakdown])
+
+  useEffect(() => {
+    fetchCosts()
+  }, [fetchCosts])
 
   const entries = Object.entries(data).sort(([, a], [, b]) => b - a)
   const others = entries.slice(5)

@@ -7,7 +7,7 @@ import fs from 'fs'
 // Initialize DB on module load
 initializeDb()
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const projects = await database.all('SELECT * FROM projects ORDER BY created_at DESC')
     return NextResponse.json(projects)
