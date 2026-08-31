@@ -5,9 +5,8 @@ import { logger, exportLogs, initializeLogger } from '@/lib/logging/logger'
 import path from 'path'
 import os from 'os'
 
-initializeDb()
-
 export async function GET(req: NextRequest) {
+  await initializeDb()
   try {
     const { searchParams } = new URL(req.url)
     const action = searchParams.get('action')

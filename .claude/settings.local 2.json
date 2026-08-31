@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp -r ~/.claude/skills/mattpocock-skills-temp/skills/engineering/wayfinder ~/.claude/skills/wayfinder)",
+      "Bash(rm -rf ~/.claude/skills/mattpocock-skills-temp)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'docs: initial CLAUDE.md and agent skills config *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(gh issue *)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --no-git --import-alias '@/*' --skip-install)",
+      "Bash(npm install *)",
+      "Bash(npm create *)",
+      "Bash(git commit -m 'build: Phase 1 - Foundation & Data Layer *)",
+      "Bash(git commit -m 'fix: Update dependencies to stable versions *)",
+      "Bash(git commit -m 'feat: Phase 2 - Core MVP Agent Orchestration *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(git commit -m 'feat: Phase 3 - Task Execution & Orchestration *)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(git commit -m 'feat: Phase 4 - Visibility & Dashboarding *)",
+      "Bash(curl -s http://localhost:3000/dashboard)",
+      "Bash(git commit -m 'feat: Phase 5 - Advanced Features & Polish *)",
+      "Bash(curl -s http://localhost:3000/settings)"
+    ]
+  }
+}

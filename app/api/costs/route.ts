@@ -8,9 +8,8 @@ import {
   getCostTrend,
 } from '@/lib/cost/calculator'
 
-initializeDb()
-
 export async function GET(req: NextRequest) {
+  await initializeDb()
   try {
     const { searchParams } = new URL(req.url)
     const breakdown = searchParams.get('breakdown')

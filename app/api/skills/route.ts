@@ -7,9 +7,8 @@ import {
   revokeSkillFromAgent,
 } from '@/lib/skills/loader'
 
-initializeDb()
-
 export async function GET(req: NextRequest) {
+  await initializeDb()
   try {
     const { searchParams } = new URL(req.url)
     const agentId = searchParams.get('agentId')

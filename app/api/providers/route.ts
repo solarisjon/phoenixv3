@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 
-initializeDb()
-
 export async function GET(_req: NextRequest) {
+  await initializeDb()
   try {
     const providers = await database.all(
       'SELECT id, name, type, description, available_models FROM providers ORDER BY name',

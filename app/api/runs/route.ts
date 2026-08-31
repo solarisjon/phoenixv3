@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 import { triggerTaskRun } from '@/lib/scheduler/engine'
 
-initializeDb()
-
 export async function GET(req: NextRequest) {
+  await initializeDb()
   try {
     const { searchParams } = new URL(req.url)
     const taskId = searchParams.get('taskId')
@@ -37,6 +36,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  await initializeDb()
   try {
     const body = await req.json()
     const { taskId } = body

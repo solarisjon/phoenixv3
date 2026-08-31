@@ -4,10 +4,8 @@ import path from 'path'
 import os from 'os'
 import fs from 'fs'
 
-// Initialize DB on module load
-initializeDb()
-
 export async function GET(_req: NextRequest) {
+  await initializeDb()
   try {
     const projects = await database.all('SELECT * FROM projects ORDER BY created_at DESC')
     return NextResponse.json(projects)
@@ -21,6 +19,7 @@ export async function GET(_req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  await initializeDb()
   try {
     const body = await req.json()
     const { name, description } = body

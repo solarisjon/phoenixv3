@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 import { generateApiKey } from '@/lib/auth/keys'
 
-initializeDb()
-
 export async function GET(_req: NextRequest) {
+  await initializeDb()
   try {
     const agents = await database.all(
       `SELECT a.*, p.name as provider_name, p.type as provider_type
@@ -30,6 +29,7 @@ export async function GET(_req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  await initializeDb()
   try {
     const body = await req.json()
     const { name, description, providerId, model, costBudget } = body

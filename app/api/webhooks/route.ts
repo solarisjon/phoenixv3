@@ -3,9 +3,8 @@ import { database, initializeDb } from '@/lib/db/client'
 import { processWebhook } from '@/lib/webhooks/processor'
 import { extractApiKeyFromHeader } from '@/lib/auth/keys'
 
-initializeDb()
-
 export async function POST(req: NextRequest) {
+  await initializeDb()
   try {
     // Extract and verify API key
     const authHeader = req.headers.get('authorization')
