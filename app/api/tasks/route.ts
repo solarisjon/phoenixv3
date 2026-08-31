@@ -78,10 +78,18 @@ export async function POST(req: NextRequest) {
       [taskId, projectId, name, description || '', agentId, scheduleCron || null, enabled, now, now],
     )
 
-    // Schedule if cron provided
+    // Schedule if cron provided, otherwise trigger immediately
     if (scheduleCron) {
       const validCron = parseCronExpression(scheduleCron)
       await scheduleTask(taskId, validCron)
+    } else {
+      // Auto-trigger run for immediate execution
+      try {
+        const runId = await triggerTaskRun(taskId)
+        console.log(`Auto-triggered run ${runId} for task ${taskId}`)
+      } catch (err) {
+        console.error('Failed to auto-trigger run:', err)
+      }
     }
 
     return NextResponse.json(

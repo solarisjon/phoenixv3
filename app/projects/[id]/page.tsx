@@ -23,19 +23,63 @@ interface Task {
   enabled: boolean
 }
 
+interface Run {
+  id: string
+  task_name: string
+  agent_name: string
+  status: string
+  created_at: number
+  total_cost: number
+}
+
 export default function ProjectDetailPage() {
   const params = useParams()
   const projectId = params.id as string
 
   const [project, setProject] = useState<Project | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
+  const [runs, setRuns] = useState<Run[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
 
+  // Poll for run updates every 2 seconds
+  const [autoRefresh, setAutoRefresh] = useState(true)
+
   useEffect(() => {
     fetchProjectData()
   }, [projectId])
+
+  // Auto-refresh runs every 2 seconds
+  useEffect(() => {
+    if (!autoRefresh || !projectId) return
+    const interval = setInterval(() => fetchRuns(), 2000)
+    return () => clearInterval(interval)
+  }, [projectId, autoRefresh])
+
+  const fetchRuns = async () => {
+    try {
+      // Fetch runs for all tasks in this project
+      const tasksRes = await fetch(`/api/tasks?projectId=${projectId}`)
+      if (!tasksRes.ok) return
+
+      const tasksData = await tasksRes.json()
+      const allRuns: Run[] = []
+
+      for (const task of tasksData) {
+        const runsRes = await fetch(`/api/runs?taskId=${task.id}`)
+        if (runsRes.ok) {
+          const taskRuns = await runsRes.json()
+          allRuns.push(...taskRuns)
+        }
+      }
+
+      // Sort by created_at descending
+      setRuns(allRuns.sort((a, b) => b.created_at - a.created_at))
+    } catch (err) {
+      console.error('Error fetching runs:', err)
+    }
+  }
 
   const fetchProjectData = async () => {
     try {
@@ -61,6 +105,9 @@ export default function ProjectDetailPage() {
         const tasksData = await tasksRes.json()
         setTasks(tasksData)
       }
+
+      // Fetch runs
+      await fetchRuns()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load project')
     } finally {
@@ -104,6 +151,36 @@ export default function ProjectDetailPage() {
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString()
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      case 'failed':
+        return 'bg-red-100 text-red-800'
+      case 'running':
+        return 'bg-blue-100 text-blue-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'running':
+        return '⚙️'
+      case 'completed':
+        return '✅'
+      case 'failed':
+        return '❌'
+      case 'pending':
+        return '⏳'
+      default:
+        return '•'
+    }
   }
 
   return (
@@ -197,6 +274,61 @@ export default function ProjectDetailPage() {
                     {task.schedule_cron && (
                       <span>Schedule: {task.schedule_cron}</span>
                     )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Active Runs Section */}
+        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">
+              {runs.length > 0 ? '📊 Recent Runs' : 'No Runs Yet'}
+            </h2>
+            {autoRefresh && runs.some((r) => r.status === 'running') && (
+              <span className="text-sm text-blue-600">🔄 Live updates</span>
+            )}
+          </div>
+
+          {runs.length === 0 ? (
+            <div className="text-center text-gray-600">
+              <p>No runs yet. Create a task to start working.</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {runs.slice(0, 10).map((run) => (
+                <div
+                  key={run.id}
+                  className={`rounded-lg border p-3 ${
+                    run.status === 'running'
+                      ? 'border-blue-300 bg-blue-50'
+                      : 'border-gray-200 bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{getStatusIcon(run.status)}</span>
+                        <div>
+                          <p className="font-medium text-gray-900">{run.task_name}</p>
+                          <p className="text-xs text-gray-600">
+                            Agent: {run.agent_name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`inline-block rounded px-2 py-1 text-xs font-medium ${getStatusColor(run.status)}`}
+                      >
+                        {run.status}
+                      </span>
+                      <p className="mt-1 text-xs text-gray-500">
+                        ${run.total_cost.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
