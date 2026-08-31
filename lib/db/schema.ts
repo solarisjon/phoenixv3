@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   description TEXT,
   agent_id TEXT NOT NULL REFERENCES agents(id),
   schedule_cron TEXT,
+  command TEXT,
   enabled BOOLEAN NOT NULL DEFAULT 1,
   created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
   updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),

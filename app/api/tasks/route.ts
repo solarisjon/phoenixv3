@@ -38,11 +38,18 @@ export async function POST(req: NextRequest) {
   await initializeDb()
   try {
     const body = await req.json()
-    const { projectId, name, description, agentId, scheduleCron } = body
+    const { projectId, name, description, agentId, scheduleCron, command } = body
 
     if (!projectId || !name || !agentId) {
       return NextResponse.json(
         { error: 'Missing required fields: projectId, name, agentId' },
+        { status: 400 },
+      )
+    }
+
+    if (!command) {
+      return NextResponse.json(
+        { error: 'command field is required' },
         { status: 400 },
       )
     }
@@ -73,9 +80,9 @@ export async function POST(req: NextRequest) {
     const enabled = true
 
     await database.run(
-      `INSERT INTO tasks (id, project_id, name, description, agent_id, schedule_cron, enabled, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [taskId, projectId, name, description || '', agentId, scheduleCron || null, enabled, now, now],
+      `INSERT INTO tasks (id, project_id, name, description, agent_id, schedule_cron, command, enabled, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [taskId, projectId, name, description || '', agentId, scheduleCron || null, command, enabled, now, now],
     )
 
     // Schedule if cron provided, otherwise trigger immediately

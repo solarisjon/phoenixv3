@@ -76,6 +76,16 @@ export async function initializeDb(): Promise<void> {
     })
 
     dbInitialized = true
+
+    // Start task executor after database is initialized
+    setTimeout(() => {
+      import('@/lib/executor/engine').then(({ startTaskExecutor, isTaskExecutorRunning }) => {
+        if (!isTaskExecutorRunning()) {
+          startTaskExecutor(2000)
+          console.log('Task executor started')
+        }
+      })
+    }, 100)
   } catch (e) {
     console.error('Failed to initialize database:', e)
   }
