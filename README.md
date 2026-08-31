@@ -217,6 +217,10 @@ npm run dev
 
 ### Building
 ```bash
+# Install dependencies first
+npm install
+
+# Then build and start
 npm run build
 npm start
 ```
