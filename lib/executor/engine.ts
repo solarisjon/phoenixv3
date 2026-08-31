@@ -62,7 +62,7 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
     const status = exitCode === 0 ? 'completed' : 'failed'
 
     // Save execution logs
-    const logFile = path.join(logsDir, `run_${runId}.log`)
+    const logFile = path.join(logsDir, `${runId}.log`)
     fs.writeFileSync(
       logFile,
       `Task: ${run.task_name}\nDescription: ${run.description || 'N/A'}\nCommand: ${run.command}\n\n=== STDOUT ===\n${stdout}\n\n=== STDERR ===\n${stderr}\n\nExit Code: ${exitCode}\nDuration: ${duration}ms`,

@@ -19,6 +19,7 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
     name: '',
     description: '',
     agentId: '',
+    command: '',
     scheduleCron: '',
   })
   const [error, setError] = useState<string | null>(null)
@@ -52,12 +53,18 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
       return
     }
 
+    if (!formData.command.trim()) {
+      setError('Command is required')
+      return
+    }
+
     try {
       await onSubmit({ ...formData, projectId })
       setFormData({
         name: '',
         description: '',
         agentId: '',
+        command: '',
         scheduleCron: '',
       })
     } catch (err) {
@@ -120,6 +127,25 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Command
+        </label>
+        <input
+          type="text"
+          value={formData.command}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, command: e.target.value }))
+          }
+          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="e.g., echo 'Hello World' > output.txt"
+          disabled={isLoading}
+        />
+        <p className="mt-1 text-xs text-gray-600">
+          Shell command to execute
+        </p>
       </div>
 
       <div>
