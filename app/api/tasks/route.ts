@@ -68,7 +68,9 @@ export async function POST(req: NextRequest) {
     // Create task
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const now = Math.floor(Date.now() / 1000)
-    const enabled = scheduleCron ? true : false
+    // Tasks are enabled by default (can be manually triggered)
+    // If scheduleCron is provided, it will run on schedule
+    const enabled = true
 
     await database.run(
       `INSERT INTO tasks (id, project_id, name, description, agent_id, schedule_cron, enabled, created_at, updated_at)
