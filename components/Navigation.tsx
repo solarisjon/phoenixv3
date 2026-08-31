@@ -13,6 +13,7 @@ export default function Navigation() {
     { href: '/projects', label: 'Projects' },
     { href: '/agents', label: 'Agents' },
     { href: '/runs', label: 'Runs' },
+    { href: '/settings', label: 'Settings' },
   ]
 
   return (
