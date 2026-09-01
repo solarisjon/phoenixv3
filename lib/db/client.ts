@@ -10,15 +10,26 @@ let db: any = null
 let dbInitialized = false
 
 const getDbPath = (): string => {
-  const phoenixDir = path.join(os.homedir(), '.phoenix')
+  const fs = require('fs')
+  // Primary location: ~/.config/phoenixv3
+  const configDir = path.join(os.homedir(), '.config', 'phoenixv3')
+  // Fallback location: ~/.phoenixv3
+  const homeDir = path.join(os.homedir(), '.phoenixv3')
+
+  let phoenixDir = configDir
+
+  // If ~/.phoenixv3 exists and ~/.config/phoenixv3 doesn't, use home dir for compatibility
+  if (!fs.existsSync(configDir) && fs.existsSync(homeDir)) {
+    phoenixDir = homeDir
+  }
+
   // Ensure phoenix directory exists
   try {
-    const fs = require('fs')
     if (!fs.existsSync(phoenixDir)) {
       fs.mkdirSync(phoenixDir, { recursive: true })
     }
   } catch (e) {
-    console.error('Failed to create .phoenix directory:', e)
+    console.error(`Failed to create ${phoenixDir} directory:`, e)
   }
   return path.join(phoenixDir, 'phoenix.db')
 }

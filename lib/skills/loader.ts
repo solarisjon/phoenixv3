@@ -82,7 +82,7 @@ export async function registerCustomSkill(
 // Load custom skills from filesystem
 export async function loadCustomSkillsFromDisk(): Promise<SkillDefinition[]> {
   try {
-    const skillsDir = path.join(os.homedir(), '.phoenix', 'skills')
+    const skillsDir = path.join(os.homedir(), '.config', 'phoenixv3', 'skills')
 
     if (!fs.existsSync(skillsDir)) {
       return []
@@ -122,7 +122,7 @@ export async function exportSkillToFile(
   skill: SkillDefinition,
 ): Promise<string> {
   try {
-    const skillsDir = path.join(os.homedir(), '.phoenix', 'skills')
+    const skillsDir = path.join(os.homedir(), '.config', 'phoenixv3', 'skills')
 
     if (!fs.existsSync(skillsDir)) {
       fs.mkdirSync(skillsDir, { recursive: true })

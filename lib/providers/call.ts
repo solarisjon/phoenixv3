@@ -1,10 +1,13 @@
 // Shared provider-calling logic used by both the "Test Connection" endpoint
 // and the task executor's agent-based execution path.
 
+import { spawn } from 'child_process'
+
 export interface ProviderCallConfig {
   apiKey: string
   endpoint?: string
   model?: string
+  binaryPath?: string
 }
 
 export interface ProviderCallResult {
@@ -25,7 +28,7 @@ export async function callProvider(
     case 'openai-compat':
       return callOpenAI(config, input)
     case 'pi':
-      return { success: false, error: 'Pi provider not yet implemented' }
+      return callPi(config, input)
     default:
       return { success: false, error: `Unsupported provider type: ${type}` }
   }
@@ -124,4 +127,114 @@ async function callOpenAI(
   } catch (error) {
     return { success: false, error: String(error) }
   }
+}
+
+async function callPi(
+  config: ProviderCallConfig,
+  input: { system?: string; user: string },
+): Promise<ProviderCallResult> {
+  try {
+    const binaryPath = config.binaryPath || 'pi'
+    const model = config.model || ''
+
+    // Build prompt text
+    const promptText = input.user
+
+    // Build pi CLI arguments
+    const args = ['--print', '--mode', 'json']
+
+    if (model) {
+      args.push('--model', model)
+    }
+    if (input.system) {
+      args.push('--system-prompt', input.system)
+    }
+    args.push('--no-session')
+
+    // Execute pi CLI and collect output
+    const output = await executePiCommand(binaryPath, args, promptText)
+
+    if (!output) {
+      return { success: false, error: 'No output from pi' }
+    }
+
+    return { success: true, text: output, model }
+  } catch (error) {
+    return { success: false, error: String(error) }
+  }
+}
+
+function executePiCommand(
+  binaryPath: string,
+  args: string[],
+  stdin: string,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(binaryPath, args, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    let stdout = ''
+    let stderr = ''
+
+    proc.stdout.on('data', (data) => {
+      stdout += data.toString()
+    })
+
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString()
+    })
+
+    proc.on('error', (error) => {
+      reject(new Error(`Failed to execute pi: ${error.message}`))
+    })
+
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`pi exited with code ${code}: ${stderr}`))
+        return
+      }
+
+      // Parse NDJSON output and extract text content
+      const text = parseNDJSON(stdout)
+      resolve(text)
+    })
+
+    // Send prompt via stdin
+    proc.stdin.write(stdin)
+    proc.stdin.end()
+  })
+}
+
+interface PiEvent {
+  type?: string
+  assistantMessageEvent?: {
+    type?: string
+    delta?: string
+  }
+  message?: {
+    role?: string
+    content?: Array<{ type?: string; text?: string }>
+  }
+}
+
+function parseNDJSON(output: string): string {
+  const lines = output.split('\n').filter((line) => line.trim())
+  let textContent = ''
+
+  for (const line of lines) {
+    try {
+      const event = JSON.parse(line) as PiEvent
+
+      // Collect text from message_update events
+      if (event.type === 'message_update' && event.assistantMessageEvent?.type === 'text_delta') {
+        textContent += event.assistantMessageEvent.delta || ''
+      }
+    } catch {
+      // Skip non-JSON lines (e.g., deprecation warnings)
+      continue
+    }
+  }
+
+  return textContent.trim()
 }

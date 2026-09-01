@@ -13,17 +13,19 @@ interface Provider {
 interface AgentFormProps {
   onSubmit: (data: any) => Promise<void>
   isLoading?: boolean
+  initialData?: any
+  isEditing?: boolean
 }
 
-export default function AgentForm({ onSubmit, isLoading = false }: AgentFormProps) {
+export default function AgentForm({ onSubmit, isLoading = false, initialData, isEditing = false }: AgentFormProps) {
   const [providers, setProviders] = useState<Provider[]>([])
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    providerId: '',
-    model: '',
-    costBudget: 1000,
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    providerId: initialData?.providerId || '',
+    model: initialData?.model || '',
+    costBudget: initialData?.costBudget || 1000,
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -211,7 +213,7 @@ export default function AgentForm({ onSubmit, isLoading = false }: AgentFormProp
         disabled={isLoading}
         className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400"
       >
-        {isLoading ? 'Creating...' : 'Create Agent'}
+        {isLoading ? (isEditing ? 'Updating...' : 'Creating...') : isEditing ? 'Update Agent' : 'Create Agent'}
       </button>
     </form>
   )

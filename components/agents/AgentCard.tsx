@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 interface AgentCardProps {
   id: string
   name: string
@@ -11,6 +13,7 @@ interface AgentCardProps {
 }
 
 export default function AgentCard({
+  id,
   name,
   description,
   provider_name,
@@ -53,6 +56,15 @@ export default function AgentCard({
           />
         </div>
         <p className="mt-1 text-xs text-gray-600">{budgetUsage}% used</p>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <Link
+          href={`/agents/${id}/edit`}
+          className="flex-1 rounded-lg bg-blue-100 px-3 py-2 text-center text-sm text-blue-700 hover:bg-blue-200"
+        >
+          Edit
+        </Link>
       </div>
     </div>
   )

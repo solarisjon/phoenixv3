@@ -43,6 +43,15 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
 
     console.log(`Starting execution of run ${runId}: ${run.task_name}`)
 
+    // Validate base_directory is set and not in src
+    if (!run.base_directory) {
+      throw new Error('Project base_directory not configured')
+    }
+
+    if (run.base_directory.includes('/src/') || run.base_directory.includes('/src')) {
+      throw new Error(`Invalid project directory - files cannot be written to src: ${run.base_directory}`)
+    }
+
     // Ensure project working directory exists
     if (!fs.existsSync(run.base_directory)) {
       fs.mkdirSync(run.base_directory, { recursive: true })

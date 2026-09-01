@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 import { builtInProviders } from '@/lib/db/schema'
+import { listPiModels } from '@/lib/providers/pi-harness'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
   await initializeDb()
   try {
     const body = await req.json()
-    const { name, type, apiKey, endpoint, model } = body
+    const { name, type, apiKey, endpoint, model, binaryPath, thinking, tools, excludeTools, noTools } = body
 
     if (!name || !type) {
       return NextResponse.json(
@@ -21,20 +22,43 @@ export async function POST(req: NextRequest) {
     const now = Math.floor(Date.now() / 1000)
 
     // Build config object
-    const config: any = {
-      apiKey: apiKey || '',
-      model: model || '',
+    const config: any = {}
+
+    // Pi doesn't need API key - uses local CLI
+    if (type !== 'pi') {
+      config.apiKey = apiKey || ''
     }
+
+    config.model = model || ''
 
     if (type === 'openai-compat') {
       config.endpoint = endpoint || ''
     }
 
+    if (type === 'pi') {
+      config.binaryPath = binaryPath || 'pi'
+      if (thinking) config.thinking = thinking
+      if (tools) config.tools = tools
+      if (excludeTools) config.excludeTools = excludeTools
+      if (noTools) config.noTools = noTools
+    }
+
     // Store as JSON
     const configJson = JSON.stringify(config)
 
-    // Known model list per provider type (same source the old auto-seed used)
-    const availableModels = builtInProviders.find((p) => p.type === type)?.availableModels || []
+    // Fetch available models
+    let availableModels = builtInProviders.find((p) => p.type === type)?.availableModels || []
+
+    // For Pi, dynamically fetch available models from the pi CLI
+    if (type === 'pi') {
+      try {
+        availableModels = await listPiModels(config.binaryPath || 'pi')
+      } catch (e) {
+        console.warn('Failed to fetch Pi models:', e)
+        // Continue with empty models list rather than failing
+      }
+    }
+
     const availableModelsJson = JSON.stringify(availableModels)
 
     await database.run(

@@ -13,38 +13,36 @@ export async function GET(
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Provider ID required' },
+        { error: 'Agent ID required' },
         { status: 400 },
       )
     }
 
-    const provider = await database.get(
-      'SELECT id, name, type, description, config, available_models, is_configured FROM providers WHERE id = ?',
+    const agent = await database.get(
+      'SELECT id, name, description, provider_id, model, cost_budget, cost_budget_currency FROM agents WHERE id = ?',
       [id],
     )
 
-    if (!provider) {
+    if (!agent) {
       return NextResponse.json(
-        { error: 'Provider not found' },
+        { error: 'Agent not found' },
         { status: 404 },
       )
     }
 
-    const config = provider.config ? JSON.parse(provider.config) : {}
-
     return NextResponse.json({
-      id: provider.id,
-      name: provider.name,
-      type: provider.type,
-      description: provider.description,
-      config,
-      availableModels: JSON.parse(provider.available_models || '[]'),
-      isConfigured: provider.is_configured === 1,
+      id: agent.id,
+      name: agent.name,
+      description: agent.description,
+      providerId: agent.provider_id,
+      model: agent.model,
+      costBudget: agent.cost_budget,
+      costBudgetCurrency: agent.cost_budget_currency,
     })
   } catch (error) {
-    console.error('Provider fetch error:', error)
+    console.error('Agent fetch error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch provider' },
+      { error: 'Failed to fetch agent' },
       { status: 500 },
     )
   }
@@ -58,11 +56,11 @@ export async function PUT(
   try {
     const { id } = params
     const body = await req.json()
-    const { name, description, config } = body
+    const { name, description, providerId, model, costBudget, costBudgetCurrency } = body
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Provider ID required' },
+        { error: 'Agent ID required' },
         { status: 400 },
       )
     }
@@ -75,23 +73,34 @@ export async function PUT(
     }
 
     const now = Math.floor(Date.now() / 1000)
-    const configJson = JSON.stringify(config || {})
 
     await database.run(
-      'UPDATE providers SET name = ?, description = ?, config = ?, updated_at = ? WHERE id = ?',
-      [name, description || null, configJson, now, id],
+      `UPDATE agents SET name = ?, description = ?, provider_id = ?, model = ?, cost_budget = ?, cost_budget_currency = ?, updated_at = ? WHERE id = ?`,
+      [
+        name,
+        description || null,
+        providerId,
+        model,
+        costBudget || 1000,
+        costBudgetCurrency || 'USD',
+        now,
+        id,
+      ],
     )
 
     return NextResponse.json({
       id,
       name,
       description,
-      config,
+      providerId,
+      model,
+      costBudget,
+      costBudgetCurrency,
     })
   } catch (error) {
-    console.error('Provider update error:', error)
+    console.error('Agent update error:', error)
     return NextResponse.json(
-      { error: 'Failed to update provider' },
+      { error: 'Failed to update agent' },
       { status: 500 },
     )
   }
@@ -107,25 +116,25 @@ export async function DELETE(
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Provider ID required' },
+        { error: 'Agent ID required' },
         { status: 400 },
       )
     }
 
-    const result = await database.run('DELETE FROM providers WHERE id = ?', [id])
+    const result = await database.run('DELETE FROM agents WHERE id = ?', [id])
 
     if (result.changes === 0) {
       return NextResponse.json(
-        { error: 'Provider not found' },
+        { error: 'Agent not found' },
         { status: 404 },
       )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Provider delete error:', error)
+    console.error('Agent delete error:', error)
     return NextResponse.json(
-      { error: 'Failed to delete provider' },
+      { error: 'Failed to delete agent' },
       { status: 500 },
     )
   }

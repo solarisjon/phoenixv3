@@ -10,12 +10,18 @@ interface ProviderConfig {
   apiKey?: string
   endpoint?: string
   model?: string
+  binaryPath?: string
+  thinking?: string
+  tools?: string
+  excludeTools?: string
+  noTools?: boolean
 }
 
 export default function ProvidersSettingsPage() {
   const [providers, setProviders] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [testing, setTesting] = useState<string | null>(null)
   const [testResult, setTestResult] = useState<any>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -23,7 +29,7 @@ export default function ProvidersSettingsPage() {
   const [success, setSuccess] = useState<string | null>(null)
   // In-memory only (never persisted) cache of API keys entered this session,
   // so re-testing a provider right after adding it doesn't require retyping the key.
-  const [sessionKeys, setSessionKeys] = useState<Record<string, { apiKey: string; endpoint?: string; model?: string; type: string }>>({})
+  const [sessionKeys, setSessionKeys] = useState<Record<string, { apiKey?: string; endpoint?: string; model?: string; type: string; binaryPath?: string }>>({})
 
   const [formData, setFormData] = useState<ProviderConfig>({
     id: '',
@@ -32,6 +38,11 @@ export default function ProvidersSettingsPage() {
     apiKey: '',
     endpoint: '',
     model: '',
+    binaryPath: '',
+    thinking: '',
+    tools: '',
+    excludeTools: '',
+    noTools: false,
   })
 
   useEffect(() => {
@@ -60,13 +71,19 @@ export default function ProvidersSettingsPage() {
       // Prefer whatever is live in the form; fall back to a key cached
       // earlier this session (e.g. from just saving this same provider).
       const cached = sessionKeys[providerId]
-      const testType = formData.apiKey ? formData.type : cached?.type
-      const testConfig = formData.apiKey
+      const testType = formData.apiKey || formData.type === 'pi' ? formData.type : cached?.type
+      const testConfig = formData.type === 'pi'
         ? {
-            apiKey: formData.apiKey,
-            endpoint: formData.endpoint,
-            model: formData.model || 'claude-opus-5',
+            apiKey: 'dummy',
+            binaryPath: formData.binaryPath || cached?.binaryPath || 'pi',
+            model: formData.model || '',
           }
+        : formData.apiKey
+          ? {
+              apiKey: formData.apiKey,
+              endpoint: formData.endpoint,
+              model: formData.model || 'claude-opus-5',
+            }
         : cached
           ? {
               apiKey: cached.apiKey,
@@ -106,6 +123,33 @@ export default function ProvidersSettingsPage() {
     }
   }
 
+  const handleEdit = async (providerId: string) => {
+    try {
+      const res = await fetch(`/api/providers/${providerId}`)
+      const provider = await res.json()
+
+      if (res.ok) {
+        setFormData({
+          id: provider.id,
+          type: provider.type,
+          name: provider.name,
+          apiKey: provider.config?.apiKey || '',
+          endpoint: provider.config?.endpoint || '',
+          model: provider.config?.model || '',
+          binaryPath: provider.config?.binaryPath || '',
+          thinking: provider.config?.thinking || '',
+          tools: provider.config?.tools || '',
+          excludeTools: provider.config?.excludeTools || '',
+          noTools: provider.config?.noTools || false,
+        })
+        setEditingId(providerId)
+        setShowForm(true)
+      }
+    } catch (err) {
+      setError(String(err))
+    }
+  }
+
   const handleDelete = async (providerId: string) => {
     if (!confirm('Delete this provider? This cannot be undone.')) return
 
@@ -135,8 +179,11 @@ export default function ProvidersSettingsPage() {
     e.preventDefault()
 
     try {
-      const res = await fetch('/api/providers/configure', {
-        method: 'POST',
+      const url = editingId ? `/api/providers/${editingId}` : '/api/providers/configure'
+      const method = editingId ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
@@ -153,9 +200,11 @@ export default function ProvidersSettingsPage() {
             endpoint: formData.endpoint,
             model: formData.model,
             type: formData.type,
+            binaryPath: formData.binaryPath,
           },
         }))
         setShowForm(false)
+        setEditingId(null)
         setFormData({
           id: '',
           type: 'claude-code',
@@ -163,6 +212,11 @@ export default function ProvidersSettingsPage() {
           apiKey: '',
           endpoint: '',
           model: '',
+          binaryPath: '',
+          thinking: '',
+          tools: '',
+          excludeTools: '',
+          noTools: false,
         })
         setError(null)
         await fetchProviders()
@@ -213,7 +267,25 @@ export default function ProvidersSettingsPage() {
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900">Configured Providers</h2>
             <button
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                setShowForm(!showForm)
+                if (showForm) {
+                  setEditingId(null)
+                  setFormData({
+                    id: '',
+                    type: 'claude-code',
+                    name: '',
+                    apiKey: '',
+                    endpoint: '',
+                    model: '',
+                    binaryPath: '',
+                    thinking: '',
+                    tools: '',
+                    excludeTools: '',
+                    noTools: false,
+                  })
+                }
+              }}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
               {showForm ? 'Cancel' : '+ Add Provider'}
@@ -222,12 +294,17 @@ export default function ProvidersSettingsPage() {
 
           {showForm && (
             <form onSubmit={handleSubmit} className="mb-6 space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingId ? 'Edit Provider' : 'Add New Provider'}
+              </h3>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Provider Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                  disabled={!!editingId}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <option value="claude-code">Claude Code</option>
                   <option value="openai-compat">OpenAI Compatible</option>
@@ -247,17 +324,32 @@ export default function ProvidersSettingsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">API Key</label>
-                <input
-                  type="password"
-                  value={formData.apiKey}
-                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                  placeholder="sk-... or your API key"
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
-                  required
-                />
-              </div>
+              {formData.type !== 'pi' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">API Key</label>
+                  <input
+                    type="password"
+                    value={formData.apiKey}
+                    onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                    placeholder="sk-... or your API key"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                    required
+                  />
+                </div>
+              )}
+              {formData.type === 'pi' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Pi Binary Path</label>
+                  <input
+                    type="text"
+                    value={formData.binaryPath || ''}
+                    onChange={(e) => setFormData({ ...formData, binaryPath: e.target.value })}
+                    placeholder="pi (or /path/to/pi)"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Leave empty to use &quot;pi&quot; from PATH</p>
+                </div>
+              )}
 
               {formData.type === 'openai-compat' && (
                 <div>
@@ -334,6 +426,12 @@ export default function ProvidersSettingsPage() {
                       {provider.model && <p className="text-xs text-gray-500 mt-1">Model: {provider.model}</p>}
                     </div>
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(provider.id)}
+                        className="rounded-lg bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() => handleTest(provider.id)}
                         disabled={testing === provider.id}
