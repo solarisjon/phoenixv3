@@ -1,5 +1,6 @@
 import { spawn } from 'child_process'
 import { database } from '@/lib/db/client'
+import { callProvider } from '@/lib/providers/call'
 import path from 'path'
 import fs from 'fs'
 
@@ -15,25 +16,22 @@ interface ExecutionResult {
 // Execute a run's task
 export async function executeRun(runId: string): Promise<ExecutionResult> {
   try {
-    // Fetch run with task and project details
+    // Fetch run with task, agent, provider, and project details
     const run = await database.get(
       `SELECT r.*, t.name as task_name, t.command, t.description, t.project_id,
-              p.base_directory, a.name as agent_name
+              p.base_directory, a.name as agent_name, a.description as agent_description,
+              a.model as agent_model, pr.type as provider_type, pr.config as provider_config
        FROM runs r
        JOIN tasks t ON r.task_id = t.id
        JOIN agents a ON r.agent_id = a.id
        JOIN projects p ON t.project_id = p.id
+       JOIN providers pr ON a.provider_id = pr.id
        WHERE r.id = ?`,
       [runId],
     )
 
     if (!run) {
       throw new Error(`Run ${runId} not found`)
-    }
-
-    if (!run.command) {
-      // Shouldn't reach here - executor filters for command-based tasks only
-      throw new Error(`Run ${runId}: No command configured`)
     }
 
     // Update run status to running
@@ -62,20 +60,21 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
       fs.mkdirSync(artifactsDir, { recursive: true })
     }
 
-    // Execute command
     const startTime = Date.now()
-    const { stdout, stderr, exitCode } = await executeCommand(
-      run.command,
-      run.base_directory,
-      runId,
-    )
-    const duration = Date.now() - startTime
 
-    const status = exitCode === 0 ? 'completed' : 'failed'
+    let stdout = ''
+    let stderr = ''
+    let exitCode = 0
+    let logContent: string
 
-    // Save execution logs with full details
-    const logFile = path.join(logsDir, `${runId}.log`)
-    const logContent = `Task: ${run.task_name}
+    if (run.command) {
+      // Command-based task: spawn a shell command
+      const result = await executeCommand(run.command, run.base_directory, runId)
+      stdout = result.stdout
+      stderr = result.stderr
+      exitCode = result.exitCode
+
+      logContent = `Task: ${run.task_name}
 Description: ${run.description || 'N/A'}
 Command: ${run.command}
 Working Directory: ${run.base_directory}
@@ -87,9 +86,55 @@ ${stdout}
 ${stderr}
 
 Exit Code: ${exitCode}
-Duration: ${duration}ms
+Duration: ${Date.now() - startTime}ms
 Timestamp: ${new Date().toISOString()}`
+    } else {
+      // Agent-based task: call the bound provider directly
+      const providerConfig = JSON.parse(run.provider_config || '{}')
+      const systemPrompt = [run.agent_name, run.agent_description].filter(Boolean).join('\n\n')
+      const userPrompt = [run.task_name, run.description].filter(Boolean).join('\n\n')
 
+      const result = await callProvider(
+        run.provider_type,
+        { apiKey: providerConfig.apiKey, endpoint: providerConfig.endpoint, model: run.agent_model },
+        { system: systemPrompt, user: userPrompt },
+      )
+
+      if (result.success) {
+        stdout = result.text || ''
+        exitCode = 0
+
+        // Write the response out as a linkable artifact alongside the raw log
+        const outputFile = path.join(run.base_directory, `${runId}-output.md`)
+        fs.writeFileSync(outputFile, stdout)
+      } else {
+        stderr = result.error || 'Provider call failed'
+        exitCode = 1
+      }
+
+      logContent = `Task: ${run.task_name}
+Description: ${run.description || 'N/A'}
+Agent: ${run.agent_name}
+Provider: ${run.provider_type}
+
+=== PROMPT (system) ===
+${systemPrompt}
+
+=== PROMPT (user) ===
+${userPrompt}
+
+=== AGENT RESPONSE ===
+${stdout || stderr}
+
+Duration: ${Date.now() - startTime}ms
+Timestamp: ${new Date().toISOString()}`
+    }
+
+    const duration = Date.now() - startTime
+    const status = exitCode === 0 ? 'completed' : 'failed'
+
+    // Save execution logs with full details
+    const logFile = path.join(logsDir, `${runId}.log`)
     fs.writeFileSync(logFile, logContent)
 
     // Scan for created artifacts (files in working directory, excluding logs/artifacts dirs)
@@ -204,15 +249,15 @@ export async function startTaskExecutor(pollIntervalMs: number = 2000): Promise<
   if (isExecuting) return
 
   isExecuting = true
-  console.log('Task executor started (handling only command-based tasks)')
+  console.log('Task executor started')
 
   const executePending = async () => {
     try {
-      // Find pending runs with commands (agent-based tasks without commands wait for agent pickup)
+      // Find pending runs - command-based tasks spawn a shell command,
+      // agent-based tasks call the bound provider directly (see executeRun)
       const pendingRuns = await database.all(
         `SELECT r.id FROM runs r
-         JOIN tasks t ON r.task_id = t.id
-         WHERE r.status = ? AND t.command IS NOT NULL
+         WHERE r.status = ?
          ORDER BY r.created_at ASC LIMIT 1`,
         ['pending'],
       )

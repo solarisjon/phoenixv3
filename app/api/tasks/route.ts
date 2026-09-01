@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 import { scheduleTask, parseCronExpression, triggerTaskRun } from '@/lib/scheduler/engine'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   await initializeDb()
   try {

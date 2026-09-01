@@ -56,19 +56,14 @@ export function stopTask(taskId: string): void {
   }
 }
 
-// Trigger a task run immediately (only for command-based tasks)
+// Trigger a task run immediately (command-based tasks spawn a shell command,
+// agent-based tasks call the bound provider directly - see executor/engine.ts)
 export async function triggerTaskRun(taskId: string): Promise<string> {
   try {
     // Fetch task
     const task = await database.get('SELECT * FROM tasks WHERE id = ?', [taskId])
     if (!task) {
       throw new Error(`Task ${taskId} not found`)
-    }
-
-    // Only auto-trigger command-based tasks. Agent-based tasks wait for agent pickup.
-    if (!task.command) {
-      console.log(`Task ${taskId} is agent-based (no command), skipping auto-trigger`)
-      return ''
     }
 
     // Check if agent is over budget

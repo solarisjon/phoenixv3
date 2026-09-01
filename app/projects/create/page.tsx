@@ -10,6 +10,7 @@ export default function CreateProjectPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    baseDirectory: '',
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -93,6 +94,26 @@ export default function CreateProjectPage() {
                 rows={4}
                 disabled={isLoading}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Working Directory (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.baseDirectory}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, baseDirectory: e.target.value }))
+                }
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:ring-blue-500"
+                placeholder="e.g., /Users/you/projects/my-project"
+                disabled={isLoading}
+              />
+              <p className="mt-1 text-xs text-gray-600">
+                Where task outputs and artifacts are written. Must be an absolute path. Leave blank to use
+                a default folder under <code className="text-xs">~/.phoenix</code>.
+              </p>
             </div>
 
             <button

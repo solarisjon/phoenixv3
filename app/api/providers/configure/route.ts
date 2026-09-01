@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
+import { builtInProviders } from '@/lib/db/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,10 +33,14 @@ export async function POST(req: NextRequest) {
     // Store as JSON
     const configJson = JSON.stringify(config)
 
+    // Known model list per provider type (same source the old auto-seed used)
+    const availableModels = builtInProviders.find((p) => p.type === type)?.availableModels || []
+    const availableModelsJson = JSON.stringify(availableModels)
+
     await database.run(
-      `INSERT INTO providers (id, name, type, config, is_configured, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [providerId, name, type, configJson, 1, now, now],
+      `INSERT INTO providers (id, name, type, config, available_models, is_configured, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [providerId, name, type, configJson, availableModelsJson, 1, now, now],
     )
 
     return NextResponse.json(

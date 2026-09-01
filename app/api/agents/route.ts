@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 import { generateApiKey } from '@/lib/auth/keys'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: NextRequest) {
   await initializeDb()
   try {
@@ -16,7 +18,7 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json(
       agents.map((a: any) => ({
         ...a,
-        apiKeyHash: undefined,
+        api_key_hash: undefined,
       })),
     )
   } catch (error) {

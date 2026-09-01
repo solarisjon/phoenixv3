@@ -4,6 +4,8 @@ import path from 'path'
 import os from 'os'
 import fs from 'fs'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: NextRequest) {
   await initializeDb()
   try {
@@ -22,7 +24,7 @@ export async function POST(req: NextRequest) {
   await initializeDb()
   try {
     const body = await req.json()
-    const { name, description } = body
+    const { name, description, baseDirectory } = body
 
     if (!name) {
       return NextResponse.json(
@@ -31,9 +33,24 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Create working directory
-    const phoenixDir = path.join(os.homedir(), '.phoenix')
-    const projectDir = path.join(phoenixDir, name)
+    // Working directory: user-specified (must be absolute, ~ expanded) or default under ~/.phoenix
+    let projectDir: string
+    if (baseDirectory) {
+      const expanded = baseDirectory.startsWith('~')
+        ? path.join(os.homedir(), baseDirectory.slice(1))
+        : baseDirectory
+
+      if (!path.isAbsolute(expanded)) {
+        return NextResponse.json(
+          { error: 'Working directory must be an absolute path (e.g. /Users/you/projects/my-project or ~/projects/my-project)' },
+          { status: 400 },
+        )
+      }
+      projectDir = expanded
+    } else {
+      const phoenixDir = path.join(os.homedir(), '.phoenix')
+      projectDir = path.join(phoenixDir, name)
+    }
 
     if (!fs.existsSync(projectDir)) {
       fs.mkdirSync(projectDir, { recursive: true })

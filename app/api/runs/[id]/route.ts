@@ -3,6 +3,8 @@ import { database, initializeDb } from '@/lib/db/client'
 import { listSnapshots, restoreSnapshot } from '@/lib/recovery/snapshot'
 import { createRetryRun } from '@/lib/retry/policy'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   await initializeDb()
   try {

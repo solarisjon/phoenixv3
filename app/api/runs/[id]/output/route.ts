@@ -3,6 +3,8 @@ import { database, initializeDb } from '@/lib/db/client'
 import fs from 'fs'
 import path from 'path'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }

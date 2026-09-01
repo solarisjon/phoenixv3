@@ -31,6 +31,7 @@ interface Run {
   created_at: number
   total_cost: number
   logs?: string
+  artifacts?: Array<{ name: string; size: number }>
 }
 
 export default function ProjectDetailPage() {
@@ -44,6 +45,7 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [autoRefresh] = useState(true) // Poll for run updates every 2 seconds
+  const [runningTaskId, setRunningTaskId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProjectData()
@@ -76,6 +78,7 @@ export default function ProjectDetailPage() {
             if (outputRes.ok) {
               const outputData = await outputRes.json()
               run.logs = outputData.logs
+              run.artifacts = outputData.artifacts
             }
           }
 
@@ -127,6 +130,26 @@ export default function ProjectDetailPage() {
   const handleTaskCreated = () => {
     setShowTaskForm(false)
     fetchProjectData()
+  }
+
+  const handleRunTask = async (taskId: string) => {
+    setRunningTaskId(taskId)
+    try {
+      const res = await fetch('/api/runs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to start run')
+      }
+      await fetchRuns()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start run')
+    } finally {
+      setRunningTaskId(null)
+    }
   }
 
   if (isLoading) {
@@ -280,9 +303,16 @@ export default function ProjectDetailPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>Agent: {task.agent_name}</span>
-                    {task.schedule_cron && (
-                      <span>Schedule: {task.schedule_cron}</span>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {task.schedule_cron && <span>Schedule: {task.schedule_cron}</span>}
+                      <button
+                        onClick={() => handleRunTask(task.id)}
+                        disabled={runningTaskId === task.id}
+                        className="rounded-lg bg-green-100 px-3 py-1 text-sm text-green-700 hover:bg-green-200 disabled:bg-gray-200"
+                      >
+                        {runningTaskId === task.id ? 'Starting...' : '▶ Run Now'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -345,6 +375,22 @@ export default function ProjectDetailPage() {
                       <pre className="whitespace-pre-wrap break-words">
                         {run.logs.split('\n').slice(-10).join('\n')}
                       </pre>
+                    </div>
+                  )}
+
+                  {run.artifacts && run.artifacts.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {run.artifacts.map((artifact) => (
+                        <a
+                          key={artifact.name}
+                          href={`/api/runs/${run.id}/artifacts/${encodeURIComponent(artifact.name)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                        >
+                          📄 {artifact.name}
+                        </a>
+                      ))}
                     </div>
                   )}
                 </div>

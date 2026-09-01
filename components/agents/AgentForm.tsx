@@ -154,21 +154,34 @@ export default function AgentForm({ onSubmit, isLoading = false }: AgentFormProp
           <label className="block text-sm font-medium text-gray-700">
             Model
           </label>
-          <select
-            value={formData.model}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, model: e.target.value }))
-            }
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-            disabled={isLoading}
-          >
-            <option value="">Select a model</option>
-            {selectedProvider.availableModels.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
-          </select>
+          {selectedProvider.availableModels.length > 0 ? (
+            <select
+              value={formData.model}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, model: e.target.value }))
+              }
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={isLoading}
+            >
+              <option value="">Select a model</option>
+              {selectedProvider.availableModels.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={formData.model}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, model: e.target.value }))
+              }
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="e.g., gpt-4o (no fixed model list for this provider type)"
+              disabled={isLoading}
+            />
+          )}
         </div>
       )}
 
