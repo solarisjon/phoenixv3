@@ -1,38 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   await initializeDb()
   try {
     const body = await req.json()
-    const { providerId, config } = body
+    const { providerId, type, config } = body
 
-    if (!providerId) {
+    if (!config) {
       return NextResponse.json(
-        { error: 'providerId required' },
+        { error: 'config required' },
         { status: 400 },
       )
     }
 
-    // Get provider
-    const provider = await database.get(
-      'SELECT * FROM providers WHERE id = ?',
-      [providerId],
-    )
-
-    if (!provider) {
+    if (!config.apiKey) {
       return NextResponse.json(
-        { error: 'Provider not found' },
-        { status: 404 },
+        { error: 'API key required in config' },
+        { status: 400 },
       )
     }
 
-    // Parse stored config and merge with provided config (form data takes precedence)
-    const storedConfig = provider.config ? JSON.parse(provider.config) : {}
-    const testConfig = { ...storedConfig, ...config }
+    // If providerId provided, try to get provider type from DB; otherwise use type from request
+    let providerType = type
+
+    if (providerId && providerId !== 'new') {
+      const provider = await database.get(
+        'SELECT type FROM providers WHERE id = ?',
+        [providerId],
+      )
+
+      if (provider) {
+        providerType = provider.type
+      }
+    }
+
+    if (!providerType) {
+      return NextResponse.json(
+        { error: 'Provider type required' },
+        { status: 400 },
+      )
+    }
 
     // Test based on provider type
-    const testResult = await testProvider(provider.type, testConfig)
+    const testResult = await testProvider(providerType, config)
 
     if (testResult.success) {
       return NextResponse.json({

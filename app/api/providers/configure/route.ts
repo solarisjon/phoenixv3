@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   await initializeDb()
   try {

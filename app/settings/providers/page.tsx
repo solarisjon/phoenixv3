@@ -18,6 +18,9 @@ export default function ProvidersSettingsPage() {
   const [showForm, setShowForm] = useState(false)
   const [testing, setTesting] = useState<string | null>(null)
   const [testResult, setTestResult] = useState<any>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<ProviderConfig>({
     id: '',
@@ -34,7 +37,7 @@ export default function ProvidersSettingsPage() {
 
   const fetchProviders = async () => {
     try {
-      const res = await fetch('/api/providers')
+      const res = await fetch('/api/providers', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setProviders(data)
@@ -51,20 +54,29 @@ export default function ProvidersSettingsPage() {
     setTestResult(null)
 
     try {
-      const provider = providers.find((p) => p.id === providerId)
-      if (!provider) return
+      // If testing a saved provider, require form to be filled with API key
+      if (providerId !== 'new') {
+        if (!formData.apiKey) {
+          setTestResult({
+            success: false,
+            message: 'Fill in the API key to test a saved provider',
+          })
+          setTesting(null)
+          return
+        }
+      }
 
-      // Build config from form data or existing provider
-      const config = {
-        apiKey: formData.apiKey || provider.apiKey,
-        endpoint: formData.endpoint || provider.endpoint,
-        model: formData.model || provider.model || 'claude-opus-5',
+      // Use form data for test (never use masked saved key)
+      const testConfig = {
+        apiKey: formData.apiKey,
+        endpoint: formData.endpoint,
+        model: formData.model || 'claude-opus-5',
       }
 
       const res = await fetch('/api/providers/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId, config }),
+        body: JSON.stringify({ providerId, type: formData.type, config: testConfig }),
       })
 
       const data = await res.json()
@@ -83,11 +95,36 @@ export default function ProvidersSettingsPage() {
     }
   }
 
+  const handleDelete = async (providerId: string) => {
+    if (!confirm('Delete this provider? This cannot be undone.')) return
+
+    setDeleting(providerId)
+    try {
+      const res = await fetch(`/api/providers/${providerId}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        setError(null)
+        setSuccess('Provider deleted successfully')
+        await fetchProviders()
+        setTimeout(() => setSuccess(null), 3000)
+      } else {
+        setError(data.error || 'Failed to delete provider')
+      }
+    } catch (err) {
+      setError(String(err))
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
-      const res = await fetch('/api/providers', {
+      const res = await fetch('/api/providers/configure', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -103,10 +140,14 @@ export default function ProvidersSettingsPage() {
           endpoint: '',
           model: '',
         })
-        fetchProviders()
+        setError(null)
+        await fetchProviders()
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Failed to save provider')
       }
     } catch (err) {
-      console.error('Failed to save provider:', err)
+      setError(String(err))
     }
   }
 
@@ -131,6 +172,18 @@ export default function ProvidersSettingsPage() {
             Configure AI providers (Claude Code, OpenAI, Pi, etc.) to enable agents to execute tasks
           </p>
         </div>
+
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-800">
+            {success}
+          </div>
+        )}
 
         {/* Providers List */}
         <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
@@ -256,13 +309,22 @@ export default function ProvidersSettingsPage() {
                       <p className="text-sm text-gray-600 capitalize">{provider.type.replace('-', ' ')}</p>
                       {provider.model && <p className="text-xs text-gray-500 mt-1">Model: {provider.model}</p>}
                     </div>
-                    <button
-                      onClick={() => handleTest(provider.id)}
-                      disabled={testing === provider.id}
-                      className="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700 hover:bg-blue-200 disabled:bg-gray-200"
-                    >
-                      {testing === provider.id ? 'Testing...' : 'Test'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleTest(provider.id)}
+                        disabled={testing === provider.id}
+                        className="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700 hover:bg-blue-200 disabled:bg-gray-200"
+                      >
+                        {testing === provider.id ? 'Testing...' : 'Test'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(provider.id)}
+                        disabled={deleting === provider.id}
+                        className="rounded-lg bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 disabled:bg-gray-200"
+                      >
+                        {deleting === provider.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

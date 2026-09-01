@@ -4,7 +4,7 @@
 
 import path from 'path'
 import os from 'os'
-import { schema, builtInProviders } from './schema'
+import { schema } from './schema'
 
 let db: any = null
 let dbInitialized = false
@@ -38,42 +38,27 @@ export async function initializeDb(): Promise<void> {
     })
 
     // Enable foreign keys
-    db.run('PRAGMA foreign_keys = ON')
+    await new Promise<void>((resolve, reject) => {
+      db.run('PRAGMA foreign_keys = ON', (err: any) => {
+        if (err) reject(err)
+        else resolve()
+      })
+    })
 
-    // Initialize schema
+    // Initialize schema - await all statements
     const statements = schema.split(';').filter((s: string) => s.trim())
     for (const stmt of statements) {
       if (stmt.trim()) {
-        db.run(stmt + ';')
+        await new Promise<void>((resolve, reject) => {
+          db.run(stmt + ';', (err: any) => {
+            if (err) reject(err)
+            else resolve()
+          })
+        })
       }
     }
 
-    // Seed built-in providers if not present
-    db.get('SELECT COUNT(*) as count FROM providers', (err: any, row: any) => {
-      if (err) {
-        console.error('Error checking providers:', err)
-        return
-      }
-
-      if (row.count === 0) {
-        const insertProvider = db.prepare(`
-          INSERT INTO providers (id, name, type, description, config_schema, available_models)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `)
-
-        for (const provider of builtInProviders) {
-          insertProvider.run(
-            provider.id,
-            provider.name,
-            provider.type,
-            provider.description,
-            JSON.stringify(provider.configSchema),
-            JSON.stringify(provider.availableModels),
-          )
-        }
-        insertProvider.finalize()
-      }
-    })
+    // Don't auto-seed providers - let users add them manually via settings
 
     dbInitialized = true
 

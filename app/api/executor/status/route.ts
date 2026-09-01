@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { initializeDb } from '@/lib/db/client'
 import { isTaskExecutorRunning, startTaskExecutor } from '@/lib/executor/engine'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: NextRequest) {
   await initializeDb()
 
