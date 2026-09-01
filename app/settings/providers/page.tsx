@@ -21,6 +21,9 @@ export default function ProvidersSettingsPage() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  // In-memory only (never persisted) cache of API keys entered this session,
+  // so re-testing a provider right after adding it doesn't require retyping the key.
+  const [sessionKeys, setSessionKeys] = useState<Record<string, { apiKey: string; endpoint?: string; model?: string; type: string }>>({})
 
   const [formData, setFormData] = useState<ProviderConfig>({
     id: '',
@@ -54,29 +57,37 @@ export default function ProvidersSettingsPage() {
     setTestResult(null)
 
     try {
-      // If testing a saved provider, require form to be filled with API key
-      if (providerId !== 'new') {
-        if (!formData.apiKey) {
-          setTestResult({
-            success: false,
-            message: 'Fill in the API key to test a saved provider',
-          })
-          setTesting(null)
-          return
-        }
-      }
+      // Prefer whatever is live in the form; fall back to a key cached
+      // earlier this session (e.g. from just saving this same provider).
+      const cached = sessionKeys[providerId]
+      const testType = formData.apiKey ? formData.type : cached?.type
+      const testConfig = formData.apiKey
+        ? {
+            apiKey: formData.apiKey,
+            endpoint: formData.endpoint,
+            model: formData.model || 'claude-opus-5',
+          }
+        : cached
+          ? {
+              apiKey: cached.apiKey,
+              endpoint: cached.endpoint,
+              model: cached.model || 'claude-opus-5',
+            }
+          : null
 
-      // Use form data for test (never use masked saved key)
-      const testConfig = {
-        apiKey: formData.apiKey,
-        endpoint: formData.endpoint,
-        model: formData.model || 'claude-opus-5',
+      if (!testConfig) {
+        setTestResult({
+          success: false,
+          message: 'Fill in the API key to test this provider',
+        })
+        setTesting(null)
+        return
       }
 
       const res = await fetch('/api/providers/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId, type: formData.type, config: testConfig }),
+        body: JSON.stringify({ providerId, type: testType, config: testConfig }),
       })
 
       const data = await res.json()
@@ -130,7 +141,20 @@ export default function ProvidersSettingsPage() {
         body: JSON.stringify(formData),
       })
 
+      const data = await res.json()
+
       if (res.ok) {
+        // Cache the key in memory (this session only) against the real
+        // provider id so "Test" on the saved card works without retyping.
+        setSessionKeys((prev) => ({
+          ...prev,
+          [data.id]: {
+            apiKey: formData.apiKey || '',
+            endpoint: formData.endpoint,
+            model: formData.model,
+            type: formData.type,
+          },
+        }))
         setShowForm(false)
         setFormData({
           id: '',
@@ -143,7 +167,6 @@ export default function ProvidersSettingsPage() {
         setError(null)
         await fetchProviders()
       } else {
-        const data = await res.json()
         setError(data.error || 'Failed to save provider')
       }
     } catch (err) {
@@ -278,20 +301,21 @@ export default function ProvidersSettingsPage() {
                 </button>
               </div>
 
-              {testResult && (
-                <div
-                  className={`rounded-lg p-4 ${
-                    testResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                  }`}
-                >
-                  <p className="font-medium">
-                    {testResult.success ? '✅ Connection Successful' : '❌ Connection Failed'}
-                  </p>
-                  <p className="text-sm mt-1">{testResult.message}</p>
-                  {testResult.model && <p className="text-xs mt-1">Model: {testResult.model}</p>}
-                </div>
-              )}
             </form>
+          )}
+
+          {testResult && (
+            <div
+              className={`mb-6 rounded-lg p-4 ${
+                testResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+              }`}
+            >
+              <p className="font-medium">
+                {testResult.success ? '✅ Connection Successful' : '❌ Connection Failed'}
+              </p>
+              <p className="text-sm mt-1">{testResult.message}</p>
+              {testResult.model && <p className="text-xs mt-1">Model: {testResult.model}</p>}
+            </div>
           )}
 
           {providers.length === 0 ? (
