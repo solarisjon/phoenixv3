@@ -28,6 +28,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
     costBudget: initialData?.costBudget || 1000,
   })
   const [error, setError] = useState<string | null>(null)
+  const [enhancing, setEnhancing] = useState(false)
 
   useEffect(() => {
     fetchProviders()
@@ -50,6 +51,38 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
     } catch (err) {
       setError('Failed to load providers')
       console.error(err)
+    }
+  }
+
+  const handleEnhance = async () => {
+    if (!formData.name.trim()) {
+      setError('Enter an agent name first so the AI has something to work from')
+      return
+    }
+    if (!formData.providerId) {
+      setError('Select a provider first - it\'s what the enhancement call uses')
+      return
+    }
+
+    setEnhancing(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/agents/enhance-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          providerId: formData.providerId,
+          name: formData.name,
+          draft: formData.description,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to enhance description')
+      setFormData((prev) => ({ ...prev, description: data.description }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to enhance description')
+    } finally {
+      setEnhancing(false)
     }
   }
 
@@ -113,22 +146,6 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Description
-        </label>
-        <textarea
-          value={formData.description}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, description: e.target.value }))
-          }
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-          placeholder="What is this agent's expertise?"
-          rows={3}
-          disabled={isLoading}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
           Provider
         </label>
         <select
@@ -186,6 +203,36 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
           )}
         </div>
       )}
+
+      <div>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-gray-700">
+            Description
+          </label>
+          <button
+            type="button"
+            onClick={handleEnhance}
+            disabled={isLoading || enhancing || !formData.providerId}
+            title={!formData.providerId ? 'Select a provider first' : undefined}
+            className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:text-gray-400"
+          >
+            {enhancing ? 'Enhancing...' : '✨ Enhance with AI'}
+          </button>
+        </div>
+        <textarea
+          value={formData.description}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, description: e.target.value }))
+          }
+          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="What is this agent's expertise? Jot down a few notes, or leave blank and let AI draft from the name alone."
+          rows={3}
+          disabled={isLoading || enhancing}
+        />
+        <p className="mt-1 text-xs text-gray-600">
+          This is sent verbatim as the agent&apos;s system prompt on every task.
+        </p>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
