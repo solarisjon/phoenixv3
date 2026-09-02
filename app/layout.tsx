@@ -6,6 +6,9 @@ import Navigation from '@/components/Navigation'
 export const metadata: Metadata = {
   title: 'Phoenix v3',
   description: 'Distributed AI Agent Orchestration Platform',
+  icons: {
+    icon: '/phoenix-logo.jpg',
+  },
 }
 
 export default function RootLayout({
