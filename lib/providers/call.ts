@@ -2,6 +2,7 @@
 // and the task executor's agent-based execution path.
 
 import { spawn } from 'child_process'
+import { estimateClaudeCost } from '@/lib/cost/pricing'
 
 export interface ProviderCallConfig {
   apiKey: string
@@ -15,16 +16,22 @@ export interface ProviderCallResult {
   text?: string
   model?: string
   error?: string
+  cost?: number
+}
+
+export interface ProviderCallOptions {
+  webSearch?: boolean
 }
 
 export async function callProvider(
   type: string,
   config: ProviderCallConfig,
   input: { system?: string; user: string },
+  options: ProviderCallOptions = {},
 ): Promise<ProviderCallResult> {
   switch (type) {
     case 'claude-code':
-      return callClaude(config, input)
+      return callClaude(config, input, options)
     case 'openai-compat':
       return callOpenAI(config, input)
     case 'pi':
@@ -37,6 +44,7 @@ export async function callProvider(
 async function callClaude(
   config: ProviderCallConfig,
   input: { system?: string; user: string },
+  options: ProviderCallOptions = {},
 ): Promise<ProviderCallResult> {
   try {
     if (!config.apiKey) {
@@ -54,8 +62,13 @@ async function callClaude(
       },
       body: JSON.stringify({
         model,
-        max_tokens: 4096,
+        // Web search runs server-side inside the same request, but leaves less
+        // room for the model's own synthesis - give it more headroom when on.
+        max_tokens: options.webSearch ? 8192 : 4096,
         ...(input.system ? { system: input.system } : {}),
+        ...(options.webSearch
+          ? { tools: [{ type: 'web_search_20260209', name: 'web_search' }] }
+          : {}),
         messages: [{ role: 'user', content: input.user }],
       }),
     })
@@ -82,7 +95,11 @@ async function callClaude(
       }
     }
 
-    return { success: true, text, model }
+    const cost = data.usage
+      ? estimateClaudeCost(model, data.usage.input_tokens || 0, data.usage.output_tokens || 0)
+      : undefined
+
+    return { success: true, text, model, cost }
   } catch (error) {
     return { success: false, error: String(error) }
   }

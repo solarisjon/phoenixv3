@@ -8,7 +8,11 @@ export async function GET(_req: NextRequest) {
   await initializeDb()
   try {
     const agents = await database.all(
-      `SELECT a.*, p.name as provider_name, p.type as provider_type
+      `SELECT a.*, p.name as provider_name, p.type as provider_type,
+              COALESCE((
+                SELECT SUM(r.total_cost) FROM runs r
+                WHERE r.agent_id = a.id AND r.status IN ('completed', 'failed')
+              ), 0) as total_cost
        FROM agents a
        JOIN providers p ON a.provider_id = p.id
        ORDER BY a.created_at DESC`,

@@ -20,16 +20,23 @@ export default function RunsPage() {
   const [filter, setFilter] = useState<string>('all')
 
   useEffect(() => {
-    fetchRuns()
+    fetchRuns(true)
   }, [])
 
-  const fetchRuns = async () => {
+  // Poll for updates so runs move through pending -> running -> completed/failed live
+  useEffect(() => {
+    const interval = setInterval(() => fetchRuns(false), 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchRuns = async (isInitial: boolean) => {
     try {
-      setIsLoading(true)
+      if (isInitial) setIsLoading(true)
       const res = await fetch('/api/runs')
       if (!res.ok) throw new Error('Failed to fetch runs')
       const data = await res.json()
       setRuns(data.sort((a: Run, b: Run) => b.created_at - a.created_at))
+      setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load runs')
     } finally {

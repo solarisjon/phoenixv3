@@ -16,9 +16,9 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
-  const fetchCosts = useCallback(async () => {
+  const fetchCosts = useCallback(async (isInitial: boolean) => {
     try {
-      setIsLoading(true)
+      if (isInitial) setIsLoading(true)
       const res = await fetch(`/api/costs?breakdown=${breakdown}`)
       if (!res.ok) throw new Error('Failed to fetch costs')
       const result = await res.json()
@@ -32,7 +32,9 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
   }, [breakdown])
 
   useEffect(() => {
-    fetchCosts()
+    fetchCosts(true)
+    const interval = setInterval(() => fetchCosts(false), 3000)
+    return () => clearInterval(interval)
   }, [fetchCosts])
 
   const entries = Object.entries(data).sort(([, a], [, b]) => b - a)

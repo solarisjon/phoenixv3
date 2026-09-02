@@ -29,12 +29,18 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetchDashboardData()
+    fetchDashboardData(true)
   }, [])
 
-  const fetchDashboardData = async () => {
+  // Poll for updates so running/failed tasks and costs reflect live state
+  useEffect(() => {
+    const interval = setInterval(() => fetchDashboardData(false), 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchDashboardData = async (isInitial: boolean) => {
     try {
-      setIsLoading(true)
+      if (isInitial) setIsLoading(true)
 
       // Fetch all data in parallel
       const [costsRes, agentsRes, runsRes] = await Promise.all([

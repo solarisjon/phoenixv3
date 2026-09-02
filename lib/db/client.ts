@@ -71,6 +71,10 @@ export async function initializeDb(): Promise<void> {
 
     // Don't auto-seed providers - let users add them manually via settings
 
+    // Register the built-in web-search skill so it's available to assign to agents
+    const { ensureWebSearchSkill } = await import('@/lib/skills/loader')
+    await ensureWebSearchSkill()
+
     dbInitialized = true
 
     // Start task executor after database is initialized (skip in test env)

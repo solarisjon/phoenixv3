@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { database } from '@/lib/db/client'
 import { callProvider } from '@/lib/providers/call'
+import { agentHasWebSearch } from '@/lib/skills/loader'
 import path from 'path'
 import fs from 'fs'
 
@@ -20,7 +21,7 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
     const run = await database.get(
       `SELECT r.*, t.name as task_name, t.command, t.description, t.project_id,
               p.base_directory, a.name as agent_name, a.description as agent_description,
-              a.model as agent_model, pr.type as provider_type, pr.config as provider_config
+              a.model as agent_model, a.provider_id, pr.type as provider_type, pr.config as provider_config
        FROM runs r
        JOIN tasks t ON r.task_id = t.id
        JOIN agents a ON r.agent_id = a.id
@@ -75,6 +76,7 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
     let stderr = ''
     let exitCode = 0
     let logContent: string
+    let cost: number | undefined
 
     if (run.command) {
       // Command-based task: spawn a shell command
@@ -103,15 +105,19 @@ Timestamp: ${new Date().toISOString()}`
       const systemPrompt = [run.agent_name, run.agent_description].filter(Boolean).join('\n\n')
       const userPrompt = [run.task_name, run.description].filter(Boolean).join('\n\n')
 
+      const webSearch = await agentHasWebSearch(run.agent_id)
+
       const result = await callProvider(
         run.provider_type,
         { apiKey: providerConfig.apiKey, endpoint: providerConfig.endpoint, model: run.agent_model },
         { system: systemPrompt, user: userPrompt },
+        { webSearch },
       )
 
       if (result.success) {
         stdout = result.text || ''
         exitCode = 0
+        cost = result.cost
 
         // Write the response out as a linkable artifact alongside the raw log
         const outputFile = path.join(run.base_directory, `${runId}-output.md`)
@@ -180,6 +186,22 @@ Timestamp: ${new Date().toISOString()}`
       'UPDATE runs SET status = ?, ended_at = ? WHERE id = ?',
       [status, Math.floor(Date.now() / 1000), runId],
     )
+
+    // Record cost, if the provider call reported token usage we could price
+    if (cost !== undefined && cost > 0) {
+      await database.run('UPDATE runs SET total_cost = ? WHERE id = ?', [cost, runId])
+      await database.run(
+        'INSERT INTO cost_logs (id, run_id, provider_id, amount, currency, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+          `cost_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          runId,
+          run.provider_id,
+          cost,
+          'USD',
+          Math.floor(Date.now() / 1000),
+        ],
+      )
+    }
 
     console.log(`Completed run ${runId}: ${status} (${duration}ms)`)
 

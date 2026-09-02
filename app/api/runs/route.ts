@@ -10,22 +10,23 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const taskId = searchParams.get('taskId')
 
-    if (!taskId) {
-      return NextResponse.json(
-        { error: 'taskId query parameter required' },
-        { status: 400 },
-      )
-    }
-
-    const runs = await database.all(
-      `SELECT r.*, t.name as task_name, a.name as agent_name
-       FROM runs r
-       JOIN tasks t ON r.task_id = t.id
-       JOIN agents a ON r.agent_id = a.id
-       WHERE r.task_id = ?
-       ORDER BY r.created_at DESC`,
-      [taskId],
-    )
+    const runs = taskId
+      ? await database.all(
+          `SELECT r.*, t.name as task_name, a.name as agent_name
+           FROM runs r
+           JOIN tasks t ON r.task_id = t.id
+           JOIN agents a ON r.agent_id = a.id
+           WHERE r.task_id = ?
+           ORDER BY r.created_at DESC`,
+          [taskId],
+        )
+      : await database.all(
+          `SELECT r.*, t.name as task_name, a.name as agent_name
+           FROM runs r
+           JOIN tasks t ON r.task_id = t.id
+           JOIN agents a ON r.agent_id = a.id
+           ORDER BY r.created_at DESC`,
+        )
 
     return NextResponse.json(runs)
   } catch (error) {

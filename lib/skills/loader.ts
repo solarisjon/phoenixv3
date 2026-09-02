@@ -14,6 +14,35 @@ export interface SkillDefinition {
   createdAt: Date
 }
 
+// Well-known skill: Anthropic's server-side web_search tool. Assigning it to an
+// agent lets that agent's Claude API calls search the live web (see call.ts).
+export const WEB_SEARCH_SKILL_ID = 'skill_web_search'
+
+export async function ensureWebSearchSkill(): Promise<void> {
+  const now = Math.floor(Date.now() / 1000)
+  await database.run(
+    `INSERT OR IGNORE INTO skills (id, name, description, type, provider, config, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      WEB_SEARCH_SKILL_ID,
+      'Web Search',
+      'Live web search via the Anthropic web_search tool - assign to agents that need up-to-date information',
+      'provider-defined',
+      'claude-code',
+      JSON.stringify({ tool: 'web_search_20260209' }),
+      now,
+    ],
+  )
+}
+
+export async function agentHasWebSearch(agentId: string): Promise<boolean> {
+  const row = await database.get(
+    'SELECT 1 FROM agent_skills WHERE agent_id = ? AND skill_id = ?',
+    [agentId, WEB_SEARCH_SKILL_ID],
+  )
+  return !!row
+}
+
 // Load all available skills (provider + custom)
 export async function loadAllSkills(agentId: string): Promise<SkillDefinition[]> {
   try {
