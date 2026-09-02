@@ -19,7 +19,9 @@ interface Task {
   id: string
   name: string
   description: string
+  agent_id: string
   agent_name: string
+  command?: string
   schedule_cron?: string
   enabled: boolean
 }
@@ -47,6 +49,7 @@ export default function ProjectDetailPage() {
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [autoRefresh] = useState(true) // Poll for run updates every 2 seconds
   const [runningTaskId, setRunningTaskId] = useState<string | null>(null)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProjectData()
@@ -130,6 +133,11 @@ export default function ProjectDetailPage() {
 
   const handleTaskCreated = () => {
     setShowTaskForm(false)
+    fetchProjectData()
+  }
+
+  const handleTaskUpdated = () => {
+    setEditingTaskId(null)
     fetchProjectData()
   }
 
@@ -271,36 +279,78 @@ export default function ProjectDetailPage() {
                   key={task.id}
                   className="rounded-lg border border-border p-4 hover:bg-background"
                 >
-                  <div className="mb-2 flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-foreground">{task.name}</h3>
-                      <p className="text-sm text-muted">{task.description}</p>
-                    </div>
-                    <div className="text-sm">
-                      {task.enabled ? (
-                        <span className="badge-success rounded-full px-2 py-1">
-                          Scheduled
-                        </span>
-                      ) : (
-                        <span className="badge-neutral rounded-full px-2 py-1">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-muted">
-                    <span>Agent: {task.agent_name}</span>
-                    <div className="flex items-center gap-3">
-                      {task.schedule_cron && <span>Schedule: {task.schedule_cron}</span>}
+                  {editingTaskId === task.id ? (
+                    <div className="panel-info">
+                      <TaskForm
+                        projectId={projectId}
+                        isEditing
+                        initialData={{
+                          name: task.name,
+                          description: task.description,
+                          agentId: task.agent_id,
+                          command: task.command || '',
+                          scheduleCron: task.schedule_cron || '',
+                        }}
+                        onSubmit={async (data) => {
+                          const res = await fetch(`/api/tasks/${task.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                          })
+                          if (!res.ok) {
+                            const errData = await res.json()
+                            throw new Error(errData.error || 'Failed to update task')
+                          }
+                          handleTaskUpdated()
+                        }}
+                      />
                       <button
-                        onClick={() => handleRunTask(task.id)}
-                        disabled={runningTaskId === task.id}
-                        className="btn-soft-success px-3 py-1 disabled:opacity-60"
+                        onClick={() => setEditingTaskId(null)}
+                        className="mt-3 text-sm text-muted hover:text-foreground"
                       >
-                        {runningTaskId === task.id ? 'Starting...' : '▶ Run Now'}
+                        Cancel
                       </button>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="mb-2 flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{task.name}</h3>
+                          <p className="text-sm text-muted">{task.description}</p>
+                        </div>
+                        <div className="text-sm">
+                          {task.enabled ? (
+                            <span className="badge-success rounded-full px-2 py-1">
+                              Scheduled
+                            </span>
+                          ) : (
+                            <span className="badge-neutral rounded-full px-2 py-1">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-muted">
+                        <span>Agent: {task.agent_name}</span>
+                        <div className="flex items-center gap-3">
+                          {task.schedule_cron && <span>Schedule: {task.schedule_cron}</span>}
+                          <button
+                            onClick={() => setEditingTaskId(task.id)}
+                            className="btn-soft-primary px-3 py-1"
+                          >
+                            ✎ Edit
+                          </button>
+                          <button
+                            onClick={() => handleRunTask(task.id)}
+                            disabled={runningTaskId === task.id}
+                            className="btn-soft-success px-3 py-1 disabled:opacity-60"
+                          >
+                            {runningTaskId === task.id ? 'Starting...' : '▶ Run Now'}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

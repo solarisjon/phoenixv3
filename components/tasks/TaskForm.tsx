@@ -7,20 +7,36 @@ interface Agent {
   name: string
 }
 
+interface TaskFormData {
+  name: string
+  description: string
+  agentId: string
+  command: string
+  scheduleCron: string
+}
+
 interface TaskFormProps {
   projectId: string
   onSubmit: (data: any) => Promise<void>
   isLoading?: boolean
+  initialData?: Partial<TaskFormData>
+  isEditing?: boolean
 }
 
-export default function TaskForm({ projectId, onSubmit, isLoading = false }: TaskFormProps) {
+export default function TaskForm({
+  projectId,
+  onSubmit,
+  isLoading = false,
+  initialData,
+  isEditing = false,
+}: TaskFormProps) {
   const [agents, setAgents] = useState<Agent[]>([])
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    agentId: '',
-    command: '',
-    scheduleCron: '',
+  const [formData, setFormData] = useState<TaskFormData>({
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    agentId: initialData?.agentId || '',
+    command: initialData?.command || '',
+    scheduleCron: initialData?.scheduleCron || '',
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -55,15 +71,17 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
 
     try {
       await onSubmit({ ...formData, projectId })
-      setFormData({
-        name: '',
-        description: '',
-        agentId: '',
-        command: '',
-        scheduleCron: '',
-      })
+      if (!isEditing) {
+        setFormData({
+          name: '',
+          description: '',
+          agentId: '',
+          command: '',
+          scheduleCron: '',
+        })
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create task')
+      setError(err instanceof Error ? err.message : 'Failed to save task')
     }
   }
 
@@ -167,7 +185,13 @@ export default function TaskForm({ projectId, onSubmit, isLoading = false }: Tas
         disabled={isLoading}
         className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
-        {isLoading ? 'Creating...' : 'Create Task'}
+        {isLoading
+          ? isEditing
+            ? 'Saving...'
+            : 'Creating...'
+          : isEditing
+            ? 'Save Changes'
+            : 'Create Task'}
       </button>
     </form>
   )
