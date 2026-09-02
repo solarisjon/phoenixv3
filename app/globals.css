@@ -1,3 +1,135 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply min-h-screen bg-background;
+  }
+
+  .card {
+    @apply rounded-lg border border-border bg-surface p-6 shadow-sm;
+  }
+
+  .btn-primary {
+    @apply rounded-lg bg-primary px-4 py-2 text-white hover:opacity-90 disabled:opacity-60;
+  }
+
+  .form-input {
+    @apply mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary;
+  }
+
+  .empty-state {
+    @apply rounded-lg border border-dashed border-border bg-surface p-8 text-center;
+  }
+
+  .banner-error {
+    @apply rounded-lg p-4 text-sm text-error;
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  }
+
+  .banner-success {
+    @apply rounded-lg p-4 text-sm text-success;
+    background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  }
+
+  .badge {
+    @apply inline-block rounded px-2 py-1 text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge text-success;
+    background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  }
+
+  .badge-error {
+    @apply badge text-error;
+    background: color-mix(in srgb, var(--color-error) 15%, transparent);
+  }
+
+  .badge-info {
+    @apply badge text-info;
+    background: color-mix(in srgb, var(--color-info) 15%, transparent);
+  }
+
+  .badge-warning {
+    @apply badge text-warning;
+    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  }
+
+  .badge-neutral {
+    @apply badge text-muted;
+    background: color-mix(in srgb, var(--color-text-secondary) 15%, transparent);
+  }
+
+  .btn-soft {
+    @apply rounded-lg px-3 py-2 text-center text-sm transition-colors;
+  }
+
+  .btn-soft-primary {
+    @apply btn-soft text-primary;
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  }
+  .btn-soft-primary:hover {
+    background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+
+  .btn-soft-success {
+    @apply btn-soft text-success;
+    background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  }
+  .btn-soft-success:hover {
+    background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  }
+
+  .btn-soft-error {
+    @apply btn-soft text-error;
+    background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  }
+  .btn-soft-error:hover {
+    background: color-mix(in srgb, var(--color-error) 20%, transparent);
+  }
+
+  .btn-success {
+    @apply rounded-lg bg-success px-4 py-2 text-white hover:opacity-90 disabled:opacity-60;
+  }
+
+  .btn-warning {
+    @apply rounded-lg bg-warning px-4 py-2 text-white hover:opacity-90 disabled:opacity-60;
+  }
+
+  .btn-error {
+    @apply rounded-lg bg-error px-4 py-2 text-white hover:opacity-90 disabled:opacity-60;
+  }
+
+  .panel-info {
+    @apply rounded-lg p-6;
+    border: 1px solid color-mix(in srgb, var(--color-info) 30%, transparent);
+    background: color-mix(in srgb, var(--color-info) 6%, transparent);
+  }
+
+  .panel-error {
+    @apply rounded-lg p-6;
+    border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+    background: color-mix(in srgb, var(--color-error) 6%, transparent);
+  }
+
+  .panel-success {
+    @apply rounded-lg p-6;
+    border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
+    background: color-mix(in srgb, var(--color-success) 6%, transparent);
+  }
+
+  /* Border+background tint only, no padding/radius - for composing into an
+     already-shaped container (e.g. a ternary highlight on an existing card). */
+  .highlight-info {
+    border-color: color-mix(in srgb, var(--color-info) 40%, transparent);
+    background: color-mix(in srgb, var(--color-info) 6%, transparent);
+  }
+}

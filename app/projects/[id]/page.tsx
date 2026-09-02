@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import TaskForm from '@/components/tasks/TaskForm'
+import StatusBadge from '@/components/ui/StatusBadge'
 
 interface Project {
   id: string
@@ -155,23 +156,23 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Loading project...</p>
+        <p className="text-muted">Loading project...</p>
       </div>
     )
   }
 
   if (error || !project) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-4xl px-4 py-8">
-          <Link href="/projects" className="mb-6 inline-block text-blue-600">
+          <Link href="/projects" className="mb-6 inline-block text-primary">
             ← Back to Projects
           </Link>
-          <div className="rounded-lg bg-red-50 p-6 text-center">
-            <p className="text-red-800">{error || 'Project not found'}</p>
+          <div className="panel-error text-center">
+            <p className="text-error">{error || 'Project not found'}</p>
             <Link
               href="/projects"
-              className="mt-4 inline-block text-blue-600 hover:text-blue-700"
+              className="mt-4 inline-block text-primary hover:underline"
             >
               Return to projects →
             </Link>
@@ -185,20 +186,6 @@ export default function ProjectDetailPage() {
     return new Date(timestamp * 1000).toLocaleDateString()
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800'
-      case 'failed':
-        return 'bg-red-100 text-red-800'
-      case 'running':
-        return 'bg-blue-100 text-blue-800'
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -216,20 +203,20 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link href="/projects" className="mb-6 inline-block text-blue-600 hover:text-blue-700">
+        <Link href="/projects" className="mb-6 inline-block text-primary hover:underline">
           ← Back to Projects
         </Link>
 
         {/* Project Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-          <p className="mt-2 text-gray-600">{project.description}</p>
-          <div className="mt-4 flex gap-6 text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
+          <p className="mt-2 text-muted">{project.description}</p>
+          <div className="mt-4 flex gap-6 text-sm text-muted">
             <div>
               <span className="font-medium">Working Directory:</span>
-              <p className="font-mono text-xs text-gray-700">{project.base_directory}</p>
+              <p className="font-mono text-xs text-foreground">{project.base_directory}</p>
             </div>
             <div>
               <span className="font-medium">Created:</span>
@@ -237,7 +224,7 @@ export default function ProjectDetailPage() {
             </div>
             <div>
               <span className="font-medium">Total Cost:</span>
-              <p className="text-lg font-bold text-gray-900">
+              <p className="text-lg font-bold text-foreground">
                 ${project.total_cost.toFixed(2)}
               </p>
             </div>
@@ -245,19 +232,19 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Tasks Section */}
-        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Tasks</h2>
+            <h2 className="text-xl font-bold text-foreground">Tasks</h2>
             <button
               onClick={() => setShowTaskForm(!showTaskForm)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:opacity-90"
             >
               {showTaskForm ? 'Cancel' : 'Create Task'}
             </button>
           </div>
 
           {showTaskForm && (
-            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-6">
+            <div className="mb-6 panel-info">
               <TaskForm
                 projectId={projectId}
                 onSubmit={async (data) => {
@@ -274,41 +261,41 @@ export default function ProjectDetailPage() {
           )}
 
           {tasks.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
-              <p className="text-gray-600">No tasks yet. Create one to get started.</p>
+            <div className="rounded-lg border border-dashed border-border bg-surface p-8 text-center">
+              <p className="text-muted">No tasks yet. Create one to get started.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+                  className="rounded-lg border border-border p-4 hover:bg-background"
                 >
                   <div className="mb-2 flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{task.name}</h3>
-                      <p className="text-sm text-gray-600">{task.description}</p>
+                      <h3 className="font-semibold text-foreground">{task.name}</h3>
+                      <p className="text-sm text-muted">{task.description}</p>
                     </div>
                     <div className="text-sm">
                       {task.enabled ? (
-                        <span className="rounded-full bg-green-100 px-2 py-1 text-green-800">
+                        <span className="badge-success rounded-full px-2 py-1">
                           Scheduled
                         </span>
                       ) : (
-                        <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-800">
+                        <span className="badge-neutral rounded-full px-2 py-1">
                           Inactive
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
+                  <div className="flex items-center justify-between text-sm text-muted">
                     <span>Agent: {task.agent_name}</span>
                     <div className="flex items-center gap-3">
                       {task.schedule_cron && <span>Schedule: {task.schedule_cron}</span>}
                       <button
                         onClick={() => handleRunTask(task.id)}
                         disabled={runningTaskId === task.id}
-                        className="rounded-lg bg-green-100 px-3 py-1 text-sm text-green-700 hover:bg-green-200 disabled:bg-gray-200"
+                        className="btn-soft-success px-3 py-1 disabled:opacity-60"
                       >
                         {runningTaskId === task.id ? 'Starting...' : '▶ Run Now'}
                       </button>
@@ -321,18 +308,18 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Active Runs Section */}
-        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-foreground">
               {runs.length > 0 ? '📊 Recent Runs' : 'No Runs Yet'}
             </h2>
             {autoRefresh && runs.some((r) => r.status === 'running') && (
-              <span className="text-sm text-blue-600">🔄 Live updates</span>
+              <span className="text-sm text-primary">🔄 Live updates</span>
             )}
           </div>
 
           {runs.length === 0 ? (
-            <div className="text-center text-gray-600">
+            <div className="text-center text-muted">
               <p>No runs yet. Create a task to start working.</p>
             </div>
           ) : (
@@ -342,8 +329,8 @@ export default function ProjectDetailPage() {
                   key={run.id}
                   className={`rounded-lg border p-4 ${
                     run.status === 'running'
-                      ? 'border-blue-300 bg-blue-50'
-                      : 'border-gray-200 bg-gray-50'
+                      ? 'highlight-info'
+                      : 'border-border bg-background'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -351,26 +338,24 @@ export default function ProjectDetailPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{getStatusIcon(run.status)}</span>
                         <div>
-                          <p className="font-medium text-gray-900">{run.task_name}</p>
-                          <p className="text-xs text-gray-600">
+                          <p className="font-medium text-foreground">{run.task_name}</p>
+                          <p className="text-xs text-muted">
                             Agent: {run.agent_name}
                           </p>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span
-                        className={`inline-block rounded px-2 py-1 text-xs font-medium ${getStatusColor(run.status)}`}
-                      >
-                        {run.status}
-                      </span>
-                      <p className="mt-1 text-xs text-gray-500">
+                      <StatusBadge status={run.status} />
+                      <p className="mt-1 text-xs text-muted">
                         ${run.total_cost.toFixed(2)}
                       </p>
                     </div>
                   </div>
 
                   {run.logs && (
+                    // Intentionally literal: a terminal readout stays dark like a real
+                    // console regardless of app theme (see theming plan, issue #17).
                     <div className="mt-3 bg-black text-green-400 rounded p-2 font-mono text-xs overflow-x-auto max-h-32 overflow-y-auto">
                       <pre className="whitespace-pre-wrap break-words">
                         {run.logs.split('\n').slice(-10).join('\n')}
@@ -386,7 +371,7 @@ export default function ProjectDetailPage() {
                           href={`/api/runs/${run.id}/artifacts/${encodeURIComponent(artifact.name)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                          className="btn-soft-primary px-2 py-1 text-xs"
                         >
                           📄 {artifact.name}
                         </a>
@@ -400,11 +385,11 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Info Section */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">About This Project</h2>
-          <div className="space-y-2 text-sm text-gray-600">
+        <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-bold text-foreground">About This Project</h2>
+          <div className="space-y-2 text-sm text-muted">
             <p>
-              <strong>Project ID:</strong> <code className="text-xs text-gray-700">{project.id}</code>
+              <strong>Project ID:</strong> <code className="text-xs text-foreground">{project.id}</code>
             </p>
             <p>
               <strong>Storage:</strong> All artifacts and logs are stored in the working directory

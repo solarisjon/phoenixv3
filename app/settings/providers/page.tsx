@@ -231,41 +231,41 @@ export default function ProvidersSettingsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Loading providers...</p>
+        <p className="text-muted">Loading providers...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/settings" className="mb-4 inline-block text-blue-600 hover:text-blue-700">
+          <Link href="/settings" className="mb-4 inline-block text-primary hover:underline">
             ← Back to Settings
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Provider Configuration</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Provider Configuration</h1>
+          <p className="mt-2 text-muted">
             Configure AI providers (Claude Code, OpenAI, Pi, etc.) to enable agents to execute tasks
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+          <div className="mb-6 banner-error">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-800">
+          <div className="mb-6 banner-success">
             {success}
           </div>
         )}
 
         {/* Providers List */}
-        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Configured Providers</h2>
+            <h2 className="text-xl font-bold text-foreground">Configured Providers</h2>
             <button
               onClick={() => {
                 setShowForm(!showForm)
@@ -286,25 +286,25 @@ export default function ProvidersSettingsPage() {
                   })
                 }
               }}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:opacity-90"
             >
               {showForm ? 'Cancel' : '+ Add Provider'}
             </button>
           </div>
 
           {showForm && (
-            <form onSubmit={handleSubmit} className="mb-6 space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-6">
-              <h3 className="text-lg font-semibold text-gray-900">
+            <form onSubmit={handleSubmit} className="mb-6 space-y-4 panel-info">
+              <h3 className="text-lg font-semibold text-foreground">
                 {editingId ? 'Edit Provider' : 'Add New Provider'}
               </h3>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Provider Type</label>
+                <label className="block text-sm font-medium text-foreground">Provider Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                   disabled={!!editingId}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
+                  className="mt-1 block w-full rounded-lg border border-border px-3 py-2 disabled:bg-border disabled:cursor-not-allowed"
                 >
                   <option value="claude-code">Claude Code</option>
                   <option value="openai-compat">OpenAI Compatible</option>
@@ -313,66 +313,66 @@ export default function ProvidersSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-foreground">Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., 'Claude on Laptop'"
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                  className="mt-1 block w-full rounded-lg border border-border px-3 py-2"
                   required
                 />
               </div>
 
               {formData.type !== 'pi' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">API Key</label>
+                  <label className="block text-sm font-medium text-foreground">API Key</label>
                   <input
                     type="password"
                     value={formData.apiKey}
                     onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                     placeholder="sk-... or your API key"
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                    className="mt-1 block w-full rounded-lg border border-border px-3 py-2"
                     required
                   />
                 </div>
               )}
               {formData.type === 'pi' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Pi Binary Path</label>
+                  <label className="block text-sm font-medium text-foreground">Pi Binary Path</label>
                   <input
                     type="text"
                     value={formData.binaryPath || ''}
                     onChange={(e) => setFormData({ ...formData, binaryPath: e.target.value })}
                     placeholder="pi (or /path/to/pi)"
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                    className="mt-1 block w-full rounded-lg border border-border px-3 py-2"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Leave empty to use &quot;pi&quot; from PATH</p>
+                  <p className="mt-1 text-xs text-muted">Leave empty to use &quot;pi&quot; from PATH</p>
                 </div>
               )}
 
               {formData.type === 'openai-compat' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Endpoint URL</label>
+                  <label className="block text-sm font-medium text-foreground">Endpoint URL</label>
                   <input
                     type="url"
                     value={formData.endpoint}
                     onChange={(e) => setFormData({ ...formData, endpoint: e.target.value })}
                     placeholder="https://api.example.com"
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                    className="mt-1 block w-full rounded-lg border border-border px-3 py-2"
                     required={formData.type === 'openai-compat'}
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Model (Optional)</label>
+                <label className="block text-sm font-medium text-foreground">Model (Optional)</label>
                 <input
                   type="text"
                   value={formData.model}
                   onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                   placeholder="e.g., claude-opus-5, gpt-4"
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                  className="mt-1 block w-full rounded-lg border border-border px-3 py-2"
                 />
               </div>
 
@@ -381,13 +381,13 @@ export default function ProvidersSettingsPage() {
                   type="button"
                   onClick={() => handleTest(formData.id || 'new')}
                   disabled={testing === (formData.id || 'new')}
-                  className="flex-1 rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:bg-gray-400"
+                  className="btn-warning flex-1"
                 >
                   {testing === (formData.id || 'new') ? 'Testing...' : 'Test Connection'}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                  className="btn-success flex-1"
                 >
                   Save Provider
                 </button>
@@ -398,9 +398,7 @@ export default function ProvidersSettingsPage() {
 
           {testResult && (
             <div
-              className={`mb-6 rounded-lg p-4 ${
-                testResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-              }`}
+              className={`mb-6 ${testResult.success ? 'banner-success' : 'banner-error'}`}
             >
               <p className="font-medium">
                 {testResult.success ? '✅ Connection Successful' : '❌ Connection Failed'}
@@ -411,38 +409,38 @@ export default function ProvidersSettingsPage() {
           )}
 
           {providers.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
-              <p className="text-gray-600">No providers configured yet.</p>
-              <p className="text-sm text-gray-500 mt-1">Add your first provider to get started.</p>
+            <div className="rounded-lg border border-dashed border-border bg-surface p-8 text-center">
+              <p className="text-muted">No providers configured yet.</p>
+              <p className="text-sm text-muted mt-1">Add your first provider to get started.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {providers.map((provider) => (
-                <div key={provider.id} className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50">
+                <div key={provider.id} className="rounded-lg border border-border p-4 hover:bg-background">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{provider.name}</h3>
-                      <p className="text-sm text-gray-600 capitalize">{provider.type.replace('-', ' ')}</p>
-                      {provider.model && <p className="text-xs text-gray-500 mt-1">Model: {provider.model}</p>}
+                      <h3 className="font-semibold text-foreground">{provider.name}</h3>
+                      <p className="text-sm text-muted capitalize">{provider.type.replace('-', ' ')}</p>
+                      {provider.model && <p className="text-xs text-muted mt-1">Model: {provider.model}</p>}
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(provider.id)}
-                        className="rounded-lg bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
+                        className="rounded-lg bg-border px-3 py-1 text-sm text-foreground hover:opacity-80"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleTest(provider.id)}
                         disabled={testing === provider.id}
-                        className="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700 hover:bg-blue-200 disabled:bg-gray-200"
+                        className="btn-soft-primary px-3 py-1 disabled:opacity-60"
                       >
                         {testing === provider.id ? 'Testing...' : 'Test'}
                       </button>
                       <button
                         onClick={() => handleDelete(provider.id)}
                         disabled={deleting === provider.id}
-                        className="rounded-lg bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 disabled:bg-gray-200"
+                        className="btn-soft-error px-3 py-1 disabled:opacity-60"
                       >
                         {deleting === provider.id ? 'Deleting...' : 'Delete'}
                       </button>
@@ -455,9 +453,9 @@ export default function ProvidersSettingsPage() {
         </div>
 
         {/* Info */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h3 className="font-semibold text-gray-900">About Providers</h3>
-          <div className="mt-4 space-y-3 text-sm text-gray-600">
+        <div className="rounded-lg border border-border bg-surface p-6">
+          <h3 className="font-semibold text-foreground">About Providers</h3>
+          <div className="mt-4 space-y-3 text-sm text-muted">
             <p>
               <strong>Claude Code:</strong> Use Anthropic&apos;s Claude API. Get your key at{' '}
               <code className="text-xs">console.anthropic.com</code>

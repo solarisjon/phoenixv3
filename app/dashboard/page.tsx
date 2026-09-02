@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import CostBreakdown from '@/components/dashboard/CostBreakdown'
+import StatusBadge from '@/components/ui/StatusBadge'
 
 interface Run {
   id: string
@@ -79,24 +80,11 @@ export default function DashboardPage() {
     return new Date(timestamp * 1000).toLocaleString()
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800'
-      case 'failed':
-        return 'bg-red-100 text-red-800'
-      case 'running':
-        return 'bg-blue-100 text-blue-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-muted">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -107,40 +95,40 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">System-wide overview and status</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="mt-2 text-muted">System-wide overview and status</p>
         </div>
 
         {/* Top stats */}
         <div className="mb-8 grid gap-6 md:grid-cols-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-600">Total Cost</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+          <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+            <p className="text-sm text-muted">Total Cost</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
               ${totalCost.toFixed(2)}
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-600">Total Agents</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+          <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+            <p className="text-sm text-muted">Total Agents</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
               {agents.length}
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-600">Active Runs</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+          <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+            <p className="text-sm text-muted">Active Runs</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">
               {runs.filter((r) => r.status === 'running').length}
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-600">Failed Runs</p>
-            <p className="mt-2 text-3xl font-bold text-red-600">
+          <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+            <p className="text-sm text-muted">Failed Runs</p>
+            <p className="mt-2 text-3xl font-bold text-error">
               {failedRuns.length}
             </p>
           </div>
@@ -148,9 +136,9 @@ export default function DashboardPage() {
 
         {/* Failed agents alert */}
         {agentsOverBudget.length > 0 && (
-          <div className="mb-8 rounded-lg border border-red-200 bg-red-50 p-6">
-            <h3 className="font-semibold text-red-900">⚠️ Agents Over Budget</h3>
-            <p className="mt-2 text-sm text-red-800">
+          <div className="mb-8 panel-error">
+            <h3 className="font-semibold text-error">⚠️ Agents Over Budget</h3>
+            <p className="mt-2 text-sm text-error">
               {agentsOverBudget.map((a) => (
                 <div key={a.id}>
                   {a.name}: ${(a.total_cost || 0).toFixed(2)} / ${a.cost_budget.toFixed(2)}
@@ -170,54 +158,50 @@ export default function DashboardPage() {
         {/* Recent runs */}
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Recent Runs</h2>
+            <h2 className="text-xl font-bold text-foreground">Recent Runs</h2>
             <Link
               href="/runs"
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-primary hover:underline"
             >
               View All →
             </Link>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-sm">
             <table className="w-full text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
+              <thead className="border-b border-border bg-background">
                 <tr>
-                  <th className="px-6 py-3 text-left font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left font-medium text-foreground">
                     Task
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left font-medium text-foreground">
                     Agent
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left font-medium text-foreground">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left font-medium text-foreground">
                     Started
                   </th>
-                  <th className="px-6 py-3 text-right font-medium text-gray-900">
+                  <th className="px-6 py-3 text-right font-medium text-foreground">
                     Cost
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {runs.map((run) => (
-                  <tr key={run.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-6 py-3 font-medium text-gray-900">
+                  <tr key={run.id} className="border-b border-border hover:bg-background">
+                    <td className="px-6 py-3 font-medium text-foreground">
                       {run.task_name}
                     </td>
-                    <td className="px-6 py-3 text-gray-600">{run.agent_name}</td>
+                    <td className="px-6 py-3 text-muted">{run.agent_name}</td>
                     <td className="px-6 py-3">
-                      <span
-                        className={`inline-block rounded px-2 py-1 text-xs font-medium ${getStatusColor(run.status)}`}
-                      >
-                        {run.status}
-                      </span>
+                      <StatusBadge status={run.status} />
                     </td>
-                    <td className="px-6 py-3 text-gray-600">
+                    <td className="px-6 py-3 text-muted">
                       {formatDate(run.created_at)}
                     </td>
-                    <td className="px-6 py-3 text-right font-medium text-gray-900">
+                    <td className="px-6 py-3 text-right font-medium text-foreground">
                       ${run.total_cost.toFixed(2)}
                     </td>
                   </tr>

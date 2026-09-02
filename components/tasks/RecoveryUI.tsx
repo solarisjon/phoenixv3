@@ -89,11 +89,11 @@ export default function RecoveryUI({
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-      <h3 className="mb-4 text-lg font-semibold text-red-900">Run Failed</h3>
+    <div className="panel-error">
+      <h3 className="mb-4 text-lg font-semibold text-error">Run Failed</h3>
 
       {error && (
-        <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-800">
+        <div className="mb-4 badge-error block rounded p-3">
           {error}
         </div>
       )}
@@ -101,13 +101,13 @@ export default function RecoveryUI({
       <div className="space-y-4">
         {hasSnapshots && (
           <div>
-            <label className="mb-2 block text-sm font-medium text-red-900">
+            <label className="mb-2 block text-sm font-medium text-error">
               Resume from Checkpoint
             </label>
             <select
               value={selectedSnapshot || ''}
               onChange={(e) => setSelectedSnapshot(e.target.value)}
-              className="block w-full rounded border border-red-300 px-3 py-2 text-sm"
+              className="block w-full rounded border border-error px-3 py-2 text-sm"
               disabled={isLoading}
             >
               <option value="">Select a snapshot</option>
@@ -121,19 +121,19 @@ export default function RecoveryUI({
             <button
               onClick={handleResume}
               disabled={isLoading || !selectedSnapshot}
-              className="mt-3 w-full rounded bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 disabled:bg-gray-400"
+              className="btn-warning mt-3 w-full text-sm font-medium"
             >
               {isLoading ? 'Resuming...' : 'Resume from Checkpoint'}
             </button>
           </div>
         )}
 
-        <div className="border-t border-red-200 pt-4">
-          <p className="mb-3 text-sm text-red-900">Or start over:</p>
+        <div className="border-t border-error pt-4">
+          <p className="mb-3 text-sm text-error">Or start over:</p>
           <button
             onClick={handleRetry}
             disabled={isLoading}
-            className="w-full rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:bg-gray-400"
+            className="btn-error w-full text-sm font-medium"
           >
             {isLoading ? 'Retrying...' : 'Retry Run'}
           </button>

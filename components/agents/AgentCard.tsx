@@ -25,44 +25,41 @@ export default function AgentCard({
   const isOverBudget = total_cost >= cost_budget
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div className="card transition-shadow hover:shadow-md">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{name}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
+        <h3 className="text-lg font-semibold text-foreground">{name}</h3>
+        <p className="text-sm text-muted">{description}</p>
       </div>
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-gray-600">Provider:</span>
+          <span className="text-muted">Provider:</span>
           <span className="font-medium">{provider_name}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Model:</span>
+          <span className="text-muted">Model:</span>
           <span className="font-medium">{model}</span>
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      <div className="mt-4 border-t border-border pt-4">
         <div className="mb-2 flex justify-between text-sm">
-          <span className="text-gray-600">Budget Usage:</span>
-          <span className={isOverBudget ? 'font-medium text-red-600' : 'font-medium text-gray-900'}>
+          <span className="text-muted">Budget Usage:</span>
+          <span className={isOverBudget ? 'font-medium text-error' : 'font-medium text-foreground'}>
             ${total_cost.toFixed(2)} / ${cost_budget.toFixed(2)}
           </span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-border">
           <div
-            className={`h-full ${isOverBudget ? 'bg-red-500' : 'bg-green-500'}`}
+            className={`h-full ${isOverBudget ? 'bg-error' : 'bg-success'}`}
             style={{ width: `${Math.min(parseFloat(budgetUsage), 100)}%` }}
           />
         </div>
-        <p className="mt-1 text-xs text-gray-600">{budgetUsage}% used</p>
+        <p className="mt-1 text-xs text-muted">{budgetUsage}% used</p>
       </div>
 
       <div className="mt-4 flex gap-2">
-        <Link
-          href={`/agents/${id}/edit`}
-          className="flex-1 rounded-lg bg-blue-100 px-3 py-2 text-center text-sm text-blue-700 hover:bg-blue-200"
-        >
+        <Link href={`/agents/${id}/edit`} className="btn-soft-primary flex-1">
           Edit
         </Link>
       </div>

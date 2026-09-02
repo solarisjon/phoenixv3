@@ -62,9 +62,9 @@ export default function EditAgentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="text-center text-gray-600">Loading agent...</div>
+          <div className="text-center text-muted">Loading agent...</div>
         </div>
       </div>
     )
@@ -72,12 +72,12 @@ export default function EditAgentPage() {
 
   if (!initialData) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+          <div className="banner-error">
             Agent not found
           </div>
-          <Link href="/agents" className="mt-4 inline-block text-blue-600 hover:text-blue-700">
+          <Link href="/agents" className="mt-4 inline-block text-primary hover:underline">
             ← Back to Agents
           </Link>
         </div>
@@ -86,17 +86,17 @@ export default function EditAgentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link href="/agents" className="mb-4 inline-block text-blue-600 hover:text-blue-700">
+        <Link href="/agents" className="mb-4 inline-block text-primary hover:underline">
           ← Back to Agents
         </Link>
 
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">Edit Agent</h1>
-        <p className="mb-8 text-gray-600">Update agent configuration</p>
+        <h1 className="mb-2 text-3xl font-bold text-foreground">Edit Agent</h1>
+        <p className="mb-8 text-muted">Update agent configuration</p>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+          <div className="mb-6 banner-error">
             {error}
           </div>
         )}

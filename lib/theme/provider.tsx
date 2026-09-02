@@ -15,9 +15,11 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Initial state matches what the server renders (no access to localStorage
+  // there), so this first client render matches too - no hydration mismatch.
+  // The real persisted values are loaded a moment later, in the effect below.
   const [mode, setMode] = useState<ThemeMode>('system')
   const [theme, setTheme] = useState<ThemeName>('default-light')
-  const [mounted, setMounted] = useState(false)
 
   // Load theme from localStorage
   useEffect(() => {
@@ -26,7 +28,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     setMode(savedMode)
     setTheme(savedTheme)
-    setMounted(true)
   }, [])
 
   // Determine if dark mode should be active
@@ -71,10 +72,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const handleSetTheme = (newTheme: ThemeName) => {
     setTheme(newTheme)
     localStorage.setItem('theme-name', newTheme)
-  }
-
-  if (!mounted) {
-    return <>{children}</>
   }
 
   return (

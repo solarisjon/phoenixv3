@@ -38,35 +38,35 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Agents</h1>
-            <p className="mt-2 text-gray-600">Manage your AI agent instances</p>
+            <h1 className="text-3xl font-bold text-foreground">Agents</h1>
+            <p className="mt-2 text-muted">Manage your AI agent instances</p>
           </div>
           <Link
             href="/agents/create"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="rounded-lg bg-primary px-4 py-2 text-white hover:opacity-90"
           >
             Create Agent
           </Link>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">
+          <div className="banner-error">
             {error}
           </div>
         )}
 
         {isLoading ? (
-          <div className="text-center text-gray-600">Loading agents...</div>
+          <div className="text-center text-muted">Loading agents...</div>
         ) : agents.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
-            <p className="text-gray-600">No agents yet. Create one to get started.</p>
+          <div className="rounded-lg border border-dashed border-border bg-surface p-12 text-center">
+            <p className="text-muted">No agents yet. Create one to get started.</p>
             <Link
               href="/agents/create"
-              className="mt-4 inline-block text-blue-600 hover:text-blue-700"
+              className="mt-4 inline-block text-primary hover:underline"
             >
               Create your first agent →
             </Link>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { chartColors } from '@/lib/theme/chart-colors'
 
 interface CostData {
   [key: string]: number
@@ -42,23 +43,14 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
   const topEntries = entries.slice(0, 5)
 
   if (isLoading) {
-    return <div className="text-center text-gray-600">Loading...</div>
+    return <div className="text-center text-muted">Loading...</div>
   }
 
-  const colors = [
-    '#3b82f6',
-    '#10b981',
-    '#f59e0b',
-    '#ef4444',
-    '#8b5cf6',
-    '#ec4899',
-  ]
-
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>
+    <div className="card">
+      <h3 className="mb-4 text-lg font-semibold text-foreground">{title}</h3>
 
-      <div className="mb-6 text-3xl font-bold text-gray-900">
+      <div className="mb-6 text-3xl font-bold text-foreground">
         ${total.toFixed(2)}
       </div>
 
@@ -69,20 +61,20 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
               <div className="flex items-center gap-2">
                 <div
                   className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: colors[index % colors.length] }}
+                  style={{ backgroundColor: chartColors[index % chartColors.length] }}
                 />
-                <span className="text-sm font-medium text-gray-900">{name}</span>
+                <span className="text-sm font-medium text-foreground">{name}</span>
               </div>
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-muted">
                 ${cost.toFixed(2)}
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-border">
               <div
                 className="h-full"
                 style={{
                   width: `${(cost / total) * 100}%`,
-                  backgroundColor: colors[index % colors.length],
+                  backgroundColor: chartColors[index % chartColors.length],
                 }}
               />
             </div>
@@ -92,16 +84,16 @@ export default function CostBreakdown({ breakdown, title }: CostBreakdownProps) 
         {others.length > 0 && (
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-muted">
                 Other ({others.length})
               </span>
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-muted">
                 ${others.reduce((sum, [, cost]) => sum + cost, 0).toFixed(2)}
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-border">
               <div
-                className="h-full bg-gray-400"
+                className="h-full bg-muted"
                 style={{
                   width: `${(others.reduce((sum, [, cost]) => sum + cost, 0) / total) * 100}%`,
                 }}

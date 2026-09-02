@@ -123,13 +123,13 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">
+        <div className="banner-error">
           {error}
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           Agent Name
         </label>
         <input
@@ -138,14 +138,14 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, name: e.target.value }))
           }
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary"
           placeholder="e.g., Python Expert"
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           Provider
         </label>
         <select
@@ -153,7 +153,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, providerId: e.target.value }))
           }
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary"
           disabled={isLoading}
         >
           <option value="">Select a provider</option>
@@ -164,13 +164,13 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
           ))}
         </select>
         {selectedProvider && (
-          <p className="mt-1 text-xs text-gray-600">{selectedProvider.description}</p>
+          <p className="mt-1 text-xs text-muted">{selectedProvider.description}</p>
         )}
       </div>
 
       {selectedProvider && (
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-foreground">
             Model
           </label>
           {selectedProvider.availableModels.length > 0 ? (
@@ -179,7 +179,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, model: e.target.value }))
               }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary"
               disabled={isLoading}
             >
               <option value="">Select a model</option>
@@ -196,7 +196,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, model: e.target.value }))
               }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary"
               placeholder="e.g., gpt-4o (no fixed model list for this provider type)"
               disabled={isLoading}
             />
@@ -206,7 +206,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
 
       <div>
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-foreground">
             Description
           </label>
           <button
@@ -214,7 +214,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
             onClick={handleEnhance}
             disabled={isLoading || enhancing || !formData.providerId}
             title={!formData.providerId ? 'Select a provider first' : undefined}
-            className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:text-gray-400"
+            className="text-xs font-medium text-primary hover:text-primary disabled:text-muted"
           >
             {enhancing ? 'Enhancing...' : '✨ Enhance with AI'}
           </button>
@@ -224,18 +224,18 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, description: e.target.value }))
           }
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary"
           placeholder="What is this agent's expertise? Jot down a few notes, or leave blank and let AI draft from the name alone."
           rows={3}
           disabled={isLoading || enhancing}
         />
-        <p className="mt-1 text-xs text-gray-600">
+        <p className="mt-1 text-xs text-muted">
           This is sent verbatim as the agent&apos;s system prompt on every task.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           Cost Budget (USD)
         </label>
         <input
@@ -249,7 +249,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
               costBudget: parseFloat(e.target.value),
             }))
           }
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:ring-primary"
           placeholder="1000"
           disabled={isLoading}
         />
@@ -258,7 +258,7 @@ export default function AgentForm({ onSubmit, isLoading = false, initialData, is
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400"
+        className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
       >
         {isLoading ? (isEditing ? 'Updating...' : 'Creating...') : isEditing ? 'Update Agent' : 'Create Agent'}
       </button>

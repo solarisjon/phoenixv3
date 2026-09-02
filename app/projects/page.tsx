@@ -39,35 +39,35 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-            <p className="mt-2 text-gray-600">Manage your projects</p>
+            <h1 className="text-3xl font-bold text-foreground">Projects</h1>
+            <p className="mt-2 text-muted">Manage your projects</p>
           </div>
           <Link
             href="/projects/create"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="rounded-lg bg-primary px-4 py-2 text-white hover:opacity-90"
           >
             New Project
           </Link>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">
+          <div className="banner-error">
             {error}
           </div>
         )}
 
         {isLoading ? (
-          <div className="text-center text-gray-600">Loading projects...</div>
+          <div className="text-center text-muted">Loading projects...</div>
         ) : projects.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
-            <p className="text-gray-600">No projects yet.</p>
+          <div className="rounded-lg border border-dashed border-border bg-surface p-12 text-center">
+            <p className="text-muted">No projects yet.</p>
             <Link
               href="/projects/create"
-              className="mt-4 inline-block text-blue-600 hover:text-blue-700"
+              className="mt-4 inline-block text-primary hover:underline"
             >
               Create your first project →
             </Link>
@@ -78,17 +78,17 @@ export default function ProjectsPage() {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="block rounded-lg border border-border bg-surface p-6 shadow-sm hover:shadow-md transition-shadow"
               >
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-foreground">
                   {project.name}
                 </h3>
-                <p className="mt-2 text-sm text-gray-600">{project.description}</p>
+                <p className="mt-2 text-sm text-muted">{project.description}</p>
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted">
                     {formatDate(project.created_at)}
                   </span>
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-lg font-bold text-foreground">
                     ${project.total_cost.toFixed(2)}
                   </span>
                 </div>
