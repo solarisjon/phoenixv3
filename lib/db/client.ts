@@ -71,6 +71,24 @@ export async function initializeDb(): Promise<void> {
 
     // Don't auto-seed providers - let users add them manually via settings
 
+    // Migrations: add artifacts_path column if it doesn't exist
+    try {
+      await new Promise<void>((resolve, reject) => {
+        db.run('ALTER TABLE runs ADD COLUMN artifacts_path TEXT;', (err: any) => {
+          if (err && err.message.includes('duplicate column')) {
+            // Column already exists, no-op
+            resolve()
+          } else if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
+      })
+    } catch (e) {
+      console.error('Migration error (non-blocking):', e)
+    }
+
     // Register the built-in web-search skill so it's available to assign to agents
     const { ensureWebSearchSkill } = await import('@/lib/skills/loader')
     await ensureWebSearchSkill()

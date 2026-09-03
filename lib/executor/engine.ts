@@ -59,15 +59,17 @@ export async function executeRun(runId: string): Promise<ExecutionResult> {
       console.log(`Created working directory: ${run.base_directory}`)
     }
 
-    // Create logs and artifacts subdirectories
+    // Create logs and timestamped artifacts subdirectories
     const logsDir = path.join(run.base_directory, 'logs')
-    const artifactsDir = path.join(run.base_directory, 'artifacts')
+    const assetsDir = path.join(run.base_directory, 'assets')
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5) // YYYY-MM-DDTHH-MM-SS
+    const runArtifactsDir = path.join(assetsDir, timestamp)
 
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true })
     }
-    if (!fs.existsSync(artifactsDir)) {
-      fs.mkdirSync(artifactsDir, { recursive: true })
+    if (!fs.existsSync(runArtifactsDir)) {
+      fs.mkdirSync(runArtifactsDir, { recursive: true })
     }
 
     const startTime = Date.now()
@@ -119,8 +121,8 @@ Timestamp: ${new Date().toISOString()}`
         exitCode = 0
         cost = result.cost
 
-        // Write the response out as a linkable artifact alongside the raw log
-        const outputFile = path.join(run.base_directory, `${runId}-output.md`)
+        // Write the response out as a linkable artifact
+        const outputFile = path.join(runArtifactsDir, `${runId}-output.md`)
         fs.writeFileSync(outputFile, stdout)
       } else {
         stderr = result.error || 'Provider call failed'
@@ -152,18 +154,21 @@ Timestamp: ${new Date().toISOString()}`
     const logFile = path.join(logsDir, `${runId}.log`)
     fs.writeFileSync(logFile, logContent)
 
-    // Scan for created artifacts (files in working directory, excluding logs/artifacts dirs)
+    // Scan for created artifacts (files in working directory, excluding system dirs)
     const artifacts: Array<{ name: string; path: string; size: number }> = []
     try {
       const files = fs.readdirSync(run.base_directory)
       for (const file of files) {
-        if (file !== 'logs' && file !== 'artifacts' && file !== '.recovery' && file !== '.config') {
+        if (file !== 'logs' && file !== 'assets' && file !== '.recovery' && file !== '.config') {
           const filePath = path.join(run.base_directory, file)
           const stat = fs.statSync(filePath)
           if (stat.isFile()) {
+            // Move artifact to timestamped assets directory
+            const destPath = path.join(runArtifactsDir, file)
+            fs.renameSync(filePath, destPath)
             artifacts.push({
               name: file,
-              path: filePath,
+              path: destPath,
               size: stat.size,
             })
           }
@@ -175,16 +180,16 @@ Timestamp: ${new Date().toISOString()}`
 
     // Log discovered artifacts
     if (artifacts.length > 0) {
-      console.log(`Found ${artifacts.length} artifacts:`)
+      console.log(`Found ${artifacts.length} artifacts in ${runArtifactsDir}:`)
       for (const artifact of artifacts) {
         console.log(`  - ${artifact.name} (${artifact.size} bytes)`)
       }
     }
 
-    // Update run status
+    // Update run status with artifacts path
     await database.run(
-      'UPDATE runs SET status = ?, ended_at = ? WHERE id = ?',
-      [status, Math.floor(Date.now() / 1000), runId],
+      'UPDATE runs SET status = ?, ended_at = ?, artifacts_path = ? WHERE id = ?',
+      [status, Math.floor(Date.now() / 1000), runArtifactsDir, runId],
     )
 
     // Record cost, if the provider call reported token usage we could price

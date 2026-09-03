@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { database, initializeDb } from '@/lib/db/client'
 import { triggerTaskRun } from '@/lib/scheduler/engine'
+import fs from 'fs'
+import path from 'path'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +30,31 @@ export async function GET(req: NextRequest) {
            ORDER BY r.created_at DESC`,
         )
 
-    return NextResponse.json(runs)
+    // Add artifacts list to each run
+    const runsWithArtifacts = runs.map((run: any) => {
+      const artifacts = []
+      if (run.artifacts_path && fs.existsSync(run.artifacts_path)) {
+        try {
+          const files = fs.readdirSync(run.artifacts_path)
+          for (const file of files) {
+            const filePath = path.join(run.artifacts_path, file)
+            const stat = fs.statSync(filePath)
+            if (stat.isFile()) {
+              artifacts.push({
+                name: file,
+                path: filePath,
+                size: stat.size,
+              })
+            }
+          }
+        } catch (e) {
+          console.error(`Failed to read artifacts for run ${run.id}:`, e)
+        }
+      }
+      return { ...run, artifacts }
+    })
+
+    return NextResponse.json(runsWithArtifacts)
   } catch (error) {
     console.error('Error fetching runs:', error)
     return NextResponse.json(

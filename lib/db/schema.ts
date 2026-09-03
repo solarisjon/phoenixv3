@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS runs (
   total_cost REAL NOT NULL DEFAULT 0,
   cost_currency TEXT NOT NULL DEFAULT 'USD' CHECK(cost_currency IN ('USD', 'EUR', 'GBP')),
   snapshot_path TEXT,
+  artifacts_path TEXT,
   original_run_id TEXT,
   retry_count INTEGER DEFAULT 0,
   retry_delay_ms INTEGER DEFAULT 0,
