@@ -8,6 +8,8 @@ import {
   getCostTrend,
 } from '@/lib/cost/calculator'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   await initializeDb()
   try {
