@@ -1,5 +1,5 @@
 import cron from 'node-cron'
-import { database } from '@/lib/db/client'
+import { database, initializeDb } from '@/lib/db/client'
 
 interface ScheduledJob {
   taskId: string
@@ -103,6 +103,7 @@ export async function triggerTaskRun(taskId: string): Promise<string> {
 // Initialize scheduler - load all enabled tasks
 export async function initializeScheduler(): Promise<void> {
   try {
+    await initializeDb()
     const tasks = await database.all(
       'SELECT id, schedule_cron FROM tasks WHERE enabled = 1 AND schedule_cron IS NOT NULL',
     )
