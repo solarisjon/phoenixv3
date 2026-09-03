@@ -36,3 +36,4 @@ yarn-error.log*
 .phoenix/
 *.db
 *.db-journal
+CPE*.md
